@@ -115,6 +115,9 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const features = ref([
   {
@@ -194,8 +197,7 @@ const accessibility = ref([
 ])
 
 function navigateToApp() {
-  // Navigate to the main app
-  window.location.href = '/app'
+  router.push('/register')
 }
 </script>
 

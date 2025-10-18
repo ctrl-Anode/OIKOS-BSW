@@ -12,7 +12,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyAre8XwoR63tQXmDEJiNP7cTg-IG-J-FF0",
   authDomain: "oikosbsw.firebaseapp.com",
   projectId: "oikosbsw",
-  storageBucket: "oikosbsw.firebasestorage.app",
+  storageBucket: "oikosbsw.appspot.com", // <-- fix here
   messagingSenderId: "835172477245",
   appId: "1:835172477245:web:55384e7e68a867963ffd54",
   measurementId: "G-E3SP92405J"
