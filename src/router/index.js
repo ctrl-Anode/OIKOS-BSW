@@ -5,6 +5,28 @@ import RegisterPage from '../pages/auth/RegisterPage.vue'
 import WelcomePage from '../pages/user/WelcomePage.vue'
 import LearningHubPage from '../pages/user/LearningHubPage.vue'
 import AdminDashboard from '../pages/admin/AdminDashboard.vue'
+import { auth } from '../firebase';
+
+// Route guard to check admin access
+async function requireAdmin(to, from, next) {
+  const user = auth.currentUser;
+
+  if (!user) {
+    return next('/login'); // Redirect unauthenticated users to login
+  }
+
+  try {
+    const idTokenResult = await user.getIdTokenResult();
+    if (idTokenResult.claims.admin) {
+      return next(); // User is an admin
+    } else {
+      return next('/login'); // Redirect non-admins to login
+    }
+  } catch (error) {
+    console.error('Error verifying admin role:', error);
+    return next('/login'); // Redirect on error
+  }
+}
 
 const routes = [
   { path: '/', component: LandingPage },
@@ -12,7 +34,7 @@ const routes = [
   { path: '/register', component: RegisterPage },
   { path: '/app', component: WelcomePage },
   { path: '/app/hub', component: LearningHubPage },
-  { path: '/admin', component: AdminDashboard },
+  { path: '/admin', component: AdminDashboard},
   { path: '/:pathMatch(.*)*', redirect: '/' }
 ]
 

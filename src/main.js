@@ -71,15 +71,19 @@ app.use(i18n); // Initialize vue-i18n
 // Firebase authentication state listener
 onAuthStateChanged(auth, user => {
   if (user) {
-    console.log('User signed in:', user);
-    sessionStorage.setItem('user', JSON.stringify({
-      uid: user.uid,
-      email: user.email,
-      role: user.role || 'user', // Example: Add role if available
-    }));
+    if (!sessionStorage.getItem('user')) {
+      console.log('User signed in:', user);
+      sessionStorage.setItem('user', JSON.stringify({
+        uid: user.uid,
+        email: user.email,
+        role: user.role || 'user', // Example: Add role if available
+      }));
+    }
   } else {
-    console.log('No user signed in');
-    sessionStorage.removeItem('user');
+    if (sessionStorage.getItem('user')) {
+      console.log('No user signed in');
+      sessionStorage.removeItem('user');
+    }
   }
 });
 

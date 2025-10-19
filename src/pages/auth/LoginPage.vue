@@ -62,6 +62,7 @@
 
         <!-- Form options -->
         <div class="flex items-center justify-between pt-2">
+          <!-- Remember Me -->
           <label class="flex items-center cursor-pointer group">
             <input
               type="checkbox"
@@ -72,12 +73,14 @@
               {{ t('labels.rememberMe') }}
             </span>
           </label>
+
+          <!-- Forgot Password Link -->
           <button
             type="button"
-            @click.prevent="forgotPassword"
-            class="text-purple-600 font-bold hover:text-purple-800 transition-colors text-sm"
+            @click="resetPassword"
+            class="text-purple-600 font-medium hover:text-purple-800 transition-colors text-sm"
           >
-            {{ t('labels.forgotPassword') }}?
+            {{ t('labels.forgotPassword') }}
           </button>
         </div>
 
@@ -145,7 +148,7 @@
 <script setup>
 import { ref } from 'vue'
 import { auth, db } from '../../firebase'
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, fetchSignInMethodsForEmail, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'firebase/auth'
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail } from 'firebase/auth'
 import { collection, query, where, getDocs, addDoc } from 'firebase/firestore'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -263,25 +266,68 @@ async function loginWithGoogle() {
   loading.value = false
 }
 
-async function forgotPassword() {
+async function resetPassword() {
   error.value = ''
   success.value = ''
+
   if (!identifier.value) {
     error.value = t('errors.emailRequired')
     return
   }
+
+  loading.value = true
+  let emailToUse = identifier.value
+
   try {
-    const signInMethods = await fetchSignInMethodsForEmail(auth, identifier.value)
-    if (!signInMethods.includes('password')) {
-      error.value = t('errors.emailNotEligibleForPasswordReset')
+    // If the user entered a name instead of email
+    if (!isEmail(identifier.value)) {
+      const q = query(collection(db, 'users'), where('name', '==', identifier.value))
+      const querySnapshot = await getDocs(q)
+      if (querySnapshot.empty) {
+        error.value = 'No user found with that name.'
+        loading.value = false
+        await logUserAction('password_reset_failed', { identifier: identifier.value, reason: 'No user found with that name' })
+        return
+      }
+      if (querySnapshot.size > 1) {
+        error.value = 'Multiple users found with that name. Please use your email.'
+        loading.value = false
+        await logUserAction('password_reset_failed', { identifier: identifier.value, reason: 'Multiple users with same name' })
+        return
+      }
+      emailToUse = querySnapshot.docs[0].data().email
+    }
+
+    // Check if the user exists and retrieve their authProvider
+    const userDoc = await getDocs(query(collection(db, 'users'), where('email', '==', emailToUse)))
+    if (userDoc.empty) {
+      error.value = t('errors.userNotFound')
+      loading.value = false
+      await logUserAction('password_reset_failed', { email: emailToUse, reason: 'User not found' })
       return
     }
-    await sendPasswordResetEmail(auth, identifier.value)
+
+    const userData = userDoc.docs[0]?.data()
+
+    if (userData?.authProvider === 'google') {
+      error.value = t('errors.googleSignInNoReset')
+      loading.value = false
+      await logUserAction('password_reset_failed', { email: emailToUse, reason: 'Google Sign-In user not eligible' })
+      return
+    }
+
+    // Send the password reset email via Firebase Auth
+    await sendPasswordResetEmail(auth, emailToUse)
     success.value = t('success.passwordResetEmailSent')
+    await logUserAction('password_reset_requested', { email: emailToUse })
   } catch (e) {
     error.value = e.message
+    await logUserAction('password_reset_failed', { email: emailToUse, error: e.message })
   }
+
+  loading.value = false
 }
+
 </script>
 
 <style scoped>
