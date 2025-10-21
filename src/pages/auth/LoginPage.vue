@@ -148,7 +148,15 @@
 <script setup>
 import { ref } from 'vue'
 import { auth, db } from '../../firebase'
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, browserSessionPersistence } from 'firebase/auth'
+import { 
+  signInWithEmailAndPassword, 
+  GoogleAuthProvider, 
+  signInWithPopup, 
+  sendPasswordResetEmail, 
+  browserSessionPersistence, 
+  browserLocalPersistence,      // <-- add this
+  setPersistence                // <-- add this
+} from 'firebase/auth'
 import { collection, query, where, getDocs, addDoc } from 'firebase/firestore'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
