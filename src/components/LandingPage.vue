@@ -1,6 +1,21 @@
 <template>
   <div class="min-h-screen bg-gradient-to-b from-purple-400 via-pink-300 to-yellow-200">
-     
+    <!-- Header -->
+    <header class="bg-purple-700 text-white py-4 px-6 shadow-md">
+      <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold">Sight Word Buddy</h1>
+        <nav>
+          <ul class="flex gap-4 text-sm md:text-base">
+            <li><a href="#features" class="hover:underline">Features</a></li>
+            <li><a href="#how-it-works" class="hover:underline">How It Works</a></li>
+            <li><a href="#why-kids-love-it" class="hover:underline">Why Kids Love It</a></li>
+            <li><a href="#accessibility" class="hover:underline">Accessibility</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Main Content -->
     <header class="px-6 py-12 text-center">
       <div class="animate-bounce-slow mb-6">
         <div class="inline-block text-8xl">📚</div>
@@ -20,7 +35,7 @@
     </header>
 
     <main class="px-6 py-12 max-w-6xl mx-auto">
-      <h2 class="text-4xl md:text-5xl font-black text-center text-purple-800 mb-12">
+      <h2 id="features" class="text-4xl md:text-5xl font-black text-center text-purple-800 mb-12">
         Amazing Features! ✨
       </h2>
       
@@ -43,7 +58,7 @@
         </div>
       </div>
 
-      <section class="bg-white rounded-3xl p-8 md:p-12 shadow-2xl mb-16 border-4 border-yellow-300">
+      <section id="how-it-works" class="bg-white rounded-3xl p-8 md:p-12 shadow-2xl mb-16 border-4 border-yellow-300">
         <h2 class="text-4xl font-black text-center text-orange-600 mb-8">
           How It Works! 🎯
         </h2>
@@ -58,8 +73,7 @@
         </div>
       </section>
 
-       
-      <section class="mb-16">
+      <section id="why-kids-love-it" class="mb-16">
         <h2 class="text-4xl md:text-5xl font-black text-center text-pink-700 mb-12">
           Why Kids Love It! 💖
         </h2>
@@ -75,7 +89,7 @@
         </div>
       </section>
 
-      <section class="bg-gradient-to-r from-blue-300 to-green-300 rounded-3xl p-8 md:p-12 shadow-2xl mb-16">
+      <section id="accessibility" class="bg-gradient-to-r from-blue-300 to-green-300 rounded-3xl p-8 md:p-12 shadow-2xl mb-16">
         <h2 class="text-4xl font-black text-center text-blue-900 mb-8">
           Built for Everyone! 🌈
         </h2>

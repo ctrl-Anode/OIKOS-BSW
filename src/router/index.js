@@ -4,7 +4,8 @@ import LoginPage from '../pages/auth/LoginPage.vue'
 import RegisterPage from '../pages/auth/RegisterPage.vue'
 import WelcomePage from '../pages/user/WelcomePage.vue'
 import LearningHubPage from '../pages/user/LearningHubPage.vue'
-import AdminDashboard from '../pages/admin/AdminDashboard.vue'
+import LearnCVCView from '../pages/user/LearnCVCView.vue'
+import AdminPanel from '../pages/admin/AdminPanel.vue'
 import { auth } from '../firebase';
 
 // Route guard to check admin access
@@ -34,7 +35,12 @@ const routes = [
   { path: '/register', component: RegisterPage },
   { path: '/app', component: WelcomePage },
   { path: '/app/hub', component: LearningHubPage },
-  { path: '/admin', component: AdminDashboard},
+  { path: '/app/learn-cvc', component: LearnCVCView },
+  { path: '/admin', component: AdminPanel },
+  { path: '/admin/cvc-manager', redirect: '/admin' },
+  { path: '/admin/manage-panel', redirect: '/admin' },
+  { path: '/admin/cvc-form', redirect: '/admin' },
+  { path: '/admin/cvc-list', redirect: '/admin' },
   { path: '/:pathMatch(.*)*', redirect: '/' }
 ]
 
