@@ -1,6 +1,6 @@
 import { db, storage } from '../firebase';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { collection, addDoc, updateDoc, deleteDoc, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, getDocs, doc, getDoc, onSnapshot, query, where } from 'firebase/firestore';
 
 // Upload single audio and return its URL
 export async function uploadCvcAudio(file, path) {
@@ -50,7 +50,7 @@ export async function deleteCvcWord(id, audioPaths) {
   await deleteDoc(wordRef);
 }
 
-// Add a word to the user's bucket
+// Add a word to the user's wordBucket collection
 export async function addWordToBucket(userId, word) {
   if (typeof userId !== 'string' || !userId.trim()) {
     console.error('Invalid userId provided to addWordToBucket:', userId);
@@ -63,21 +63,16 @@ export async function addWordToBucket(userId, word) {
   }
 
   try {
-    const userRef = doc(db, 'users', userId);
-    const userDoc = await getDoc(userRef);
+    const bucketCollection = collection(db, `wordBucket_${userId}`);
 
-    if (userDoc.exists()) {
-      const userData = userDoc.data();
-      const bucket = userData.bucket || [];
+    // Check if the word already exists in the bucket
+    const existingWordsQuery = query(bucketCollection, where('id', '==', word.id));
+    const snapshot = await getDocs(existingWordsQuery);
 
-      // Add the word to the bucket if it's not already there
-      if (!bucket.some((item) => item.id === word.id)) {
-        bucket.push(word);
-        await updateDoc(userRef, { bucket });
-      }
+    if (snapshot.empty) {
+      await addDoc(bucketCollection, word);
     } else {
-      // Create the bucket if the user document doesn't exist
-      await updateDoc(userRef, { bucket: [word] });
+      console.log('Word already exists in the bucket:', word.word);
     }
   } catch (error) {
     console.error('Error adding word to bucket:', error);
@@ -85,22 +80,47 @@ export async function addWordToBucket(userId, word) {
   }
 }
 
-// Remove a word from the user's bucket
+// Remove a word from the user's wordBucket collection
 export async function removeWordFromBucket(userId, wordId) {
+  if (typeof userId !== 'string' || !userId.trim()) {
+    console.error('Invalid userId provided to removeWordFromBucket:', userId);
+    throw new Error('Invalid userId');
+  }
+
   try {
-    const userRef = doc(db, 'users', userId);
-    const userDoc = await getDoc(userRef);
+    const bucketCollection = collection(db, `wordBucket_${userId}`);
+    const wordQuery = query(bucketCollection, where('id', '==', wordId));
+    const snapshot = await getDocs(wordQuery);
 
-    if (userDoc.exists()) {
-      const userData = userDoc.data();
-      const bucket = userData.bucket || [];
-
-      // Filter out the word with the given wordId
-      const updatedBucket = bucket.filter((item) => item.id !== wordId);
-      await updateDoc(userRef, { bucket: updatedBucket });
+    if (!snapshot.empty) {
+      const wordDoc = snapshot.docs[0];
+      await deleteDoc(wordDoc.ref);
+    } else {
+      console.warn('Word not found in bucket for removal:', wordId);
     }
   } catch (error) {
     console.error('Error removing word from bucket:', error);
+    throw error;
+  }
+}
+
+// Listen to real-time updates for the user's wordBucket collection
+export function listenToWordBucket(userId, callback) {
+  if (typeof userId !== 'string' || !userId.trim()) {
+    console.error('Invalid userId provided to listenToWordBucket:', userId);
+    throw new Error('Invalid userId');
+  }
+
+  try {
+    const bucketCollection = collection(db, `wordBucket_${userId}`);
+
+    // Listen for real-time updates
+    return onSnapshot(bucketCollection, (snapshot) => {
+      const bucket = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      callback(bucket);
+    });
+  } catch (error) {
+    console.error('Error setting up listener for word bucket:', error);
     throw error;
   }
 }

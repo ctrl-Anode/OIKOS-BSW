@@ -1,265 +1,239 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-purple-300 via-pink-200 to-blue-200 p-4 md:p-8">
-    <div class="max-w-2xl mx-auto">
-      <!-- Header with animated title -->
-      <div class="mb-8 text-center">
-        <h2 class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-2">
-          {{ isEditing ? '✏️ Edit CVC Word' : '➕ Add New CVC Word' }}
-        </h2>
-        <p class="text-gray-700 text-lg">{{ isEditing ? 'Update the word details below' : 'Create a new sight word for kids to learn' }}</p>
+  <div class="max-w-3xl mx-auto p-6 bg-white shadow-xl rounded-2xl space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+      <h2 class="text-2xl font-bold text-purple-700">
+        {{ isEditing ? "✏️ Edit CVC Word" : "🆕 Add CVC Word" }}
+      </h2>
+      <button
+        @click="$emit('cancel')"
+        class="px-3 py-1 bg-gray-200 rounded-md hover:bg-gray-300 transition"
+      >
+        ✖ Cancel
+      </button>
+    </div>
+
+    <!-- Word Input -->
+    <div>
+      <label class="block text-sm font-semibold text-gray-700 mb-1">Word</label>
+      <input
+        v-model="form.word"
+        type="text"
+        maxlength="3"
+        placeholder="Enter 3-letter CVC word"
+        class="w-full p-3 border rounded-xl text-center font-bold text-2xl tracking-widest uppercase"
+      />
+    </div>
+
+    <!-- Category Select -->
+    <div>
+      <label class="block text-sm font-semibold text-gray-700 mb-1">Category</label>
+      <select
+        v-model="form.category"
+        class="w-full p-3 border rounded-xl"
+      >
+        <option disabled value="">Select Category</option>
+        <option v-for="cat in categories" :key="cat.id" :value="cat.name">
+          {{ cat.name }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Audio Upload Section -->
+    <div class="space-y-4">
+      <!-- Full Word Audio -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">
+          🔊 Full Word Audio
+        </label>
+        <input
+          ref="fullAudioInput"
+          type="file"
+          accept="audio/*"
+          class="hidden"
+          @change="handleAudioUpload('full', $event)"
+        />
+        <button
+          type="button"
+          @click="triggerFullAudio"
+          class="w-full px-4 py-3 border-2 border-dashed border-purple-400 rounded-xl hover:border-purple-600 hover:bg-purple-50 transition-all text-purple-700 font-semibold flex items-center justify-center gap-2"
+        >
+          📤 Click to upload or drag audio file
+        </button>
+        <p v-if="form.audios.full" class="text-green-600 mt-1 text-sm">
+          ✅ Full audio ready: {{ form.audios.full.name || 'Uploaded file' }}
+        </p>
       </div>
 
-      <!-- Form Card -->
-      <form @submit.prevent="saveWord" class="bg-white rounded-3xl shadow-2xl p-6 md:p-8 space-y-6">
-        <!-- Word Input -->
-        <div class="space-y-2">
-          <label class="block text-lg font-bold text-purple-700">
-            📝 Word
-          </label>
-          <input 
-            v-model="form.word" 
-            type="text" 
-            placeholder="Enter the CVC word (e.g., cat, dog, sit)"
-            class="w-full px-4 py-3 border-2 border-purple-300 rounded-xl focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-200 transition-all text-lg" 
-            required 
-          />
-          <p class="text-sm text-gray-600">Enter a 3-letter consonant-vowel-consonant word</p>
-        </div>
-
-        <!-- Category Input -->
-        <div class="space-y-2">
-          <label class="block text-lg font-bold text-purple-700">
-            🏷️ Category
-          </label>
-          <input 
-            v-model="form.category" 
-            type="text" 
-            placeholder="e.g., Animals, Actions, Objects"
-            class="w-full px-4 py-3 border-2 border-purple-300 rounded-xl focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-200 transition-all text-lg" 
-          />
-          <p class="text-sm text-gray-600">Organize words by category for better learning</p>
-        </div>
-
-        <!-- Full Word Audio -->
-        <div class="space-y-2">
-          <label class="block text-lg font-bold text-purple-700">
-            🔊 Full Word Audio
-          </label>
-          <div class="relative">
-            <input 
-              ref="fullAudio" 
-              type="file" 
-              accept="audio/*"
-              class="hidden" 
-              @change="handleAudioUpload('full', $event)"
-            />
-            <button
-              type="button"
-              @click="$refs.fullAudio.click()"
-              class="w-full px-4 py-3 border-2 border-dashed border-purple-400 rounded-xl hover:border-purple-600 hover:bg-purple-50 transition-all text-purple-700 font-semibold flex items-center justify-center gap-2"
-            >
-              📤 Click to upload or drag audio file
-            </button>
-          </div>
-          <p class="text-sm text-gray-600">Upload the audio pronunciation of the complete word</p>
-        </div>
-
-        <!-- Letter Audios Section -->
-        <div class="space-y-4">
-          <label class="block text-lg font-bold text-purple-700">
-            🔤 Letter Audios
-          </label>
-          <p class="text-sm text-gray-600 mb-4">Upload individual letter pronunciations to help kids learn phonics</p>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div v-for="(letter, index) in 3" :key="index" class="space-y-2">
-              <label class="block text-base font-bold" :class="getLetterColor(index)">
-                {{ index + 1 }}️⃣ {{ getLetterLabel(index) }}
-              </label>
-              <div class="relative">
-                <input 
-                  :ref="`letterAudio${index}`" 
-                  type="file" 
-                  accept="audio/*"
-                  class="hidden" 
-                  @change="handleAudioUpload(`letter${index}`, $event)"
-                />
-                <button
-                  type="button"
-                  @click="$refs[`letterAudio${index}`].click()"
-                  class="w-full px-3 py-2 border-2 border-dashed rounded-lg hover:bg-opacity-10 transition-all font-semibold text-sm"
-                  :class="getLetterButtonStyle(index)"
-                >
-                  📤 Upload
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="flex flex-col md:flex-row justify-end gap-4 pt-6 border-t-2 border-gray-200">
-          <button 
-            type="button" 
-            @click="$emit('cancel')" 
-            class="px-6 py-3 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold rounded-xl transition-all transform hover:scale-105 active:scale-95"
+      <!-- Letter Audios -->
+      <div class="grid grid-cols-3 gap-4">
+        <div
+          v-for="(letter, index) in 3"
+          :key="index"
+          class="flex flex-col items-center p-3 border rounded-xl"
+        >
+          <span
+            class="text-lg font-semibold mb-2"
+            :class="getLetterColor(index)"
           >
-            ❌ Cancel
-          </button>
-          <button 
-            type="submit" 
-            class="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold rounded-xl transition-all transform hover:scale-105 active:scale-95 shadow-lg"
+            {{ getLetterLabel(index) }}
+          </span>
+          <input
+            :ref="el => (letterAudioInputs[index] = el)"
+            type="file"
+            accept="audio/*"
+            class="hidden"
+            @change="handleAudioUpload(`letter${index + 1}`, $event)"
+          />
+          <button
+            type="button"
+            @click="triggerLetterAudio(index)"
+            class="w-full px-3 py-2 border-2 border-dashed rounded-lg hover:bg-opacity-10 transition-all font-semibold text-sm"
+            :class="getLetterButtonStyle(index)"
           >
-            ✅ Save Word
+            📤 Upload
           </button>
+          <p v-if="form.audios.letters[index]" class="text-green-600 mt-1 text-xs text-center">
+            ✅ Uploaded: {{ form.audios.letters[index].name || 'File ready' }}
+          </p>
         </div>
-      </form>
+      </div>
+    </div>
+
+    <!-- Save Button -->
+    <div class="flex justify-center pt-4">
+      <button
+        @click="saveWord"
+        class="px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-lg transition"
+      >
+        💾 {{ isEditing ? "Update Word" : "Save Word" }}
+      </button>
     </div>
   </div>
 </template>
 
-<script>
-import { ref, computed } from 'vue';
-import { uploadCvcAudio, addCvcWord, updateCvcWord } from '../../services/firebaseCVC';
+<script setup>
+import { ref, computed, watch } from 'vue'
+import { uploadCvcAudio, addCvcWord, updateCvcWord } from '../../services/firebaseCVC'
+import { useToast } from 'vue-toastification';
 
-export default {
-  name: 'CVCForm',
-  props: {
-    wordData: {
-      type: Object,
-      default: null
-    }
-  },
-  emits: ['saved', 'cancel'],
-  setup(props, { emit }) {
-    const form = ref({
-      word: props.wordData?.word || '',
-      category: props.wordData?.category || '',
-      audios: {
-        full: null,
-        letters: [null, null, null]
-      }
-    });
+const props = defineProps({
+  wordData: { type: Object, default: null },
+  categories: { type: Array, default: () => [] }
+})
 
-    const fullAudio = ref(null);
-    const letterAudio1 = ref(null);
-    const letterAudio2 = ref(null);
-    const letterAudio3 = ref(null);
+const emit = defineEmits(['saved', 'cancel'])
 
-    const isEditing = computed(() => !!props.wordData);
+// Form Data
+const form = ref({
+  word: props.wordData?.word || '',
+  category: props.wordData?.category || '',
+  audios: { full: null, letters: [null, null, null] }
+})
 
-    const handleAudioUpload = (type, event) => {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          if (type === 'full') {
-            form.value.audios.full = e.target.result;
-          } else {
-            const index = parseInt(type.replace('letter', ''), 10);
-            form.value.audios.letters[index] = e.target.result;
-          }
-        };
-        reader.readAsDataURL(file);
-      }
-    };
+const isEditing = computed(() => !!props.wordData)
+const fullAudioInput = ref(null)
+const letterAudioInputs = ref([null, null, null])
+const toast = useToast()
 
-    const getLetterColor = (index) => {
-      return [
-        'text-pink-600',
-        'text-blue-600',
-        'text-green-600'
-      ][index];
-    };
-
-    const getLetterButtonStyle = (index) => {
-      return [
-        'border-pink-300 hover:border-pink-600 hover:bg-pink-50 text-pink-700',
-        'border-blue-300 hover:border-blue-600 hover:bg-blue-50 text-blue-700',
-        'border-green-300 hover:border-green-600 hover:bg-green-50 text-green-700'
-      ][index];
-    };
-
-    const getLetterLabel = (index) => {
-      return ['First Letter', 'Second Letter', 'Third Letter'][index];
-    };
-
-    const saveWord = async () => {
-      try {
-        // Validation
-        if (!form.value.word.trim()) {
-          alert('Word field is required.');
-          return;
-        }
-
-        if (!form.value.category.trim()) {
-          alert('Category field is required.');
-          return;
-        }
-
-        if (!fullAudio.value?.files[0]) {
-          alert('Full word audio is required.');
-          return;
-        }
-
-        if (!letterAudio1.value?.files[0] || !letterAudio2.value?.files[0] || !letterAudio3.value?.files[0]) {
-          alert('All letter audios are required.');
-          return;
-        }
-
-        const audios = {
-          full: null,
-          letters: []
-        };
-
-        if (fullAudio.value?.files[0]) {
-          audios.full = await uploadCvcAudio(fullAudio.value.files[0], `cvc/${form.value.word}/full.mp3`);
-        }
-
-        if (letterAudio1.value?.files[0]) {
-          audios.letters.push(await uploadCvcAudio(letterAudio1.value.files[0], `cvc/${form.value.word}/letter_1.mp3`));
-        }
-        if (letterAudio2.value?.files[0]) {
-          audios.letters.push(await uploadCvcAudio(letterAudio2.value.files[0], `cvc/${form.value.word}/letter_2.mp3`));
-        }
-        if (letterAudio3.value?.files[0]) {
-          audios.letters.push(await uploadCvcAudio(letterAudio3.value.files[0], `cvc/${form.value.word}/letter_3.mp3`));
-        }
-
-        if (isEditing.value) {
-          await updateCvcWord(props.wordData.id, { ...form.value, audios });
-        } else {
-          await addCvcWord({ ...form.value, audios });
-        }
-
-        emit('saved');
-      } catch (error) {
-        console.error('Error saving CVC word:', error);
-      }
-    };
-
-    return {
-      form,
-      fullAudio,
-      letterAudio1,
-      letterAudio2,
-      letterAudio3,
-      isEditing,
-      handleAudioUpload,
-      getLetterColor,
-      getLetterButtonStyle,
-      getLetterLabel,
-      saveWord
-    };
+// Force uppercase + limit to 3 letters
+watch(
+  () => form.value.word,
+  newWord => {
+    if (newWord) form.value.word = newWord.toUpperCase().slice(0, 3)
   }
+)
+
+// Handle Upload Input
+const handleAudioUpload = (type, e) => {
+  const file = e.target.files[0]
+  if (!file) return
+
+  if (type === 'full') {
+    form.value.audios.full = file
+  } else if (type.startsWith('letter')) {
+    const index = parseInt(type.replace('letter', ''), 10) - 1
+    if (index >= 0 && index < 3) {
+      form.value.audios.letters[index] = file
+    }
+  }
+  e.target.value = ''
+}
+
+// Trigger Upload Inputs
+const triggerFullAudio = () => fullAudioInput.value?.click()
+const triggerLetterAudio = index => letterAudioInputs.value[index]?.click()
+
+// UI helpers
+const getLetterColor = i => ['text-pink-600', 'text-blue-600', 'text-green-600'][i]
+const getLetterButtonStyle = i =>
+  [
+    'border-pink-300 hover:border-pink-600 hover:bg-pink-50 text-pink-700',
+    'border-blue-300 hover:border-blue-600 hover:bg-blue-50 text-blue-700',
+    'border-green-300 hover:border-green-600 hover:bg-green-50 text-green-700'
+  ][i]
+const getLetterLabel = i => ['First Letter', 'Second Letter', 'Third Letter'][i]
+
+// Validate CVC structure
+const isCVCWord = (word) => {
+  const cvcPattern = /^[^aeiou][aeiou][^aeiou]$/i;
+  return cvcPattern.test(word);
 };
+
+// Save Word
+const saveWord = async () => {
+  try {
+    if (!form.value.word.trim() || form.value.word.length !== 3 || !isCVCWord(form.value.word)) {
+      toast.error('Please enter a valid 3-letter CVC word (Consonant-Vowel-Consonant).')
+      return
+    }
+    if (!form.value.category.trim()) {
+      toast.error('Category is required.')
+      return
+    }
+    if (!form.value.audios.full || form.value.audios.letters.some(a => !a)) {
+      toast.error('Please upload all audio files.')
+      return
+    }
+
+    // Upload files to Firebase Storage
+    const fullUrl = await uploadCvcAudio(form.value.audios.full, `cvc/${form.value.word}/full.mp3`)
+    const letterUrls = await Promise.all(
+      form.value.audios.letters.map((f, i) =>
+        uploadCvcAudio(f, `cvc/${form.value.word}/letter_${i + 1}.mp3`)
+      )
+    )
+
+    const payload = {
+      word: form.value.word,
+      category: form.value.category,
+      audios: { full: fullUrl, letters: letterUrls },
+      updatedAt: new Date().toISOString()
+    }
+
+    if (isEditing.value) {
+      await updateCvcWord(props.wordData.id, payload)
+      toast.success('CVC word updated successfully!')
+    } else {
+      await addCvcWord(payload)
+      toast.success('CVC word added successfully!')
+    }
+
+    emit('saved')
+
+    // Clear fields after saving
+    form.value = {
+      word: '',
+      category: '',
+      audios: { full: null, letters: [null, null, null] }
+    }
+  } catch (err) {
+    console.error('❌ Error saving CVC word:', err)
+    toast.error('Upload failed. Check console for details.')
+  }
+}
 </script>
 
 <style scoped>
-.cvc-form {
-  padding: 20px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background-color: #f9f9f9;
-}
+/* optional subtle animations or hover effects */
 </style>
-

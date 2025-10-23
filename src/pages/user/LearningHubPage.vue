@@ -4,19 +4,20 @@
     <div v-if="user" class="flex items-center justify-between px-8 py-4 bg-white bg-opacity-80 shadow-md">
       <div class="text-2xl font-bold text-purple-700">Sight Words Hub</div>
       <div class="flex items-center gap-4">
+        
+        <span class="font-bold text-lg text-gray-800">{{ user.displayName || 'User' }}</span>
         <img
           v-if="userAvatar"
           :src="getAvatarUrl(userAvatar)"
           alt="Avatar"
           class="w-12 h-12 rounded-full border-2 border-blue-500"
         />
-        <span class="font-bold text-lg text-gray-800">{{ user.displayName || 'User' }}</span>
         <button @click="logout" class="btn ml-6">Logout</button>
       </div>
     </div>
     <!-- Main Content -->
     <div class="flex flex-col items-center justify-center py-20">
-      <div class="bg-white rounded-3xl shadow-2xl p-12 w-full max-w-2xl text-center">
+      <div class="bg-white rounded-3xl shadow-2xl p-12 w-full max-w-5xl text-center">
         <h2 class="text-4xl font-black text-purple-700 mb-10">Sight Words Learning Hub</h2>
         <LearnCVCView />
       </div>

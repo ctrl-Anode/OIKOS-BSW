@@ -6,6 +6,8 @@ import { createI18n } from 'vue-i18n';
 import { auth } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import './style.css';
+import Toast, { POSITION } from 'vue-toastification';
+import 'vue-toastification/dist/index.css';
 
 const messages = {
   en: {
@@ -86,5 +88,23 @@ onAuthStateChanged(auth, user => {
     }
   }
 });
+
+// Configure Toastification
+const toastOptions = {
+  position: POSITION.TOP_RIGHT,
+  timeout: 5000,
+  closeOnClick: true,
+  pauseOnFocusLoss: true,
+  pauseOnHover: true,
+  draggable: true,
+  draggablePercent: 0.6,
+  showCloseButtonOnHover: false,
+  hideProgressBar: false,
+  closeButton: 'button',
+  icon: true,
+  rtl: false,
+};
+
+app.use(Toast, toastOptions);
 
 app.mount('#app');

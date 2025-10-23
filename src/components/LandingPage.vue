@@ -211,7 +211,7 @@ const accessibility = ref([
 ])
 
 function navigateToApp() {
-  router.push('/register')
+  router.push('/login')
 }
 </script>
 
