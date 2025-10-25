@@ -7,7 +7,11 @@
       <h2 class="text-xl font-bold">Teaching Screen</h2>
       <div v-if="currentWord" class="current-word-display">
         <h3 class="text-3xl font-bold mb-4">
-          {{ isUppercase ? currentWord.word.toUpperCase() : currentWord.word.toLowerCase() }}
+          {{
+            isUppercase
+              ? currentWord.word.toUpperCase()
+              : currentWord.word.toLowerCase()
+          }}
         </h3>
 
         <div class="flex gap-2 mb-4">
@@ -21,15 +25,21 @@
           </button>
         </div>
 
-        <button class="play-btn" @click="playFullWord(currentWord.audios.full, currentWord.word)">
+        <button
+          class="play-btn"
+          @click="playFullWord(currentWord.audios.full, currentWord.word)"
+        >
           Play Word
         </button>
       </div>
       <div v-else class="text-gray-500">No word selected.</div>
 
       <!-- Toggle Case Button -->
-      <button class="toggle-case-btn absolute bottom-4 right-4" @click="toggleCase">
-        {{ isUppercase ? 'LC' : 'UC' }}
+      <button
+        class="toggle-case-btn absolute bottom-4 right-4"
+        @click="toggleCase"
+      >
+        {{ isUppercase ? "LC" : "UC" }}
       </button>
     </div>
 
@@ -52,7 +62,11 @@
         />
         <select v-model="selectedCategory" class="category-select">
           <option value="">All Categories</option>
-          <option v-for="category in categories" :key="category" :value="category">
+          <option
+            v-for="category in categories"
+            :key="category"
+            :value="category"
+          >
             {{ category }}
           </option>
         </select>
@@ -67,18 +81,12 @@
         <li v-for="word in paginatedWords" :key="word.id" class="bucket-item">
           <div class="flex justify-between items-center">
             <div>
-              <h3 class="text-lg font-semibold">{{ word.word.toUpperCase() }}</h3>
-              <button
-                class="play-btn"
-                @click="selectWord(word)"
-              >
-                Select
-              </button>
+              <h3 class="text-lg font-semibold">
+                {{ word.word.toUpperCase() }}
+              </h3>
+              <button class="play-btn" @click="selectWord(word)">Select</button>
             </div>
-            <button
-              class="delete-btn"
-              @click="removeFromBucket(word.id)"
-            >
+            <button class="delete-btn" @click="removeFromBucket(word.id)">
               Remove
             </button>
           </div>
@@ -86,7 +94,9 @@
       </ul>
 
       <!-- Pagination Controls -->
-      <div class="pagination-controls mt-4 flex justify-center items-center gap-2">
+      <div
+        class="pagination-controls mt-4 flex justify-center items-center gap-2"
+      >
         <button
           class="pagination-btn"
           :disabled="currentPage === 1"
@@ -108,36 +118,40 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted } from "vue";
 import {
   getAllCvcWords,
   addWordToBucket,
   removeWordFromBucket,
-  listenToWordBucket
-} from '../../services/firebaseCVC';
-import { audioEngine } from '../../services/audioEngine';
-import { auth } from '../../firebase';
+  listenToWordBucket,
+} from "../../services/firebaseCVC";
+import { audioEngine } from "../../services/audioEngine";
+import { auth } from "../../firebase";
 
 export default {
-  name: 'LearnCVCView',
+  name: "LearnCVCView",
   setup() {
     const words = ref([]);
     const wordBucket = ref([]);
     const currentWord = ref(null);
     const isUppercase = ref(true);
-    const searchQuery = ref('');
-    const selectedCategory = ref('');
+    const searchQuery = ref("");
+    const selectedCategory = ref("");
     const currentPage = ref(1);
     const itemsPerPage = ref(5);
 
     const categories = computed(() => {
-      const uniqueCategories = new Set(wordBucket.value.map((word) => word.category));
+      const uniqueCategories = new Set(
+        wordBucket.value.map((word) => word.category)
+      );
       return Array.from(uniqueCategories);
     });
 
     const filteredWords = computed(() => {
       return wordBucket.value.filter((word) => {
-        const matchesSearch = word.word.toLowerCase().includes(searchQuery.value.toLowerCase());
+        const matchesSearch = word.word
+          .toLowerCase()
+          .includes(searchQuery.value.toLowerCase());
         const matchesCategory = selectedCategory.value
           ? word.category === selectedCategory.value
           : true;
@@ -170,29 +184,31 @@ export default {
     const addToBucket = async (word) => {
       const userId = auth.currentUser?.uid;
       if (!userId) {
-        console.error('User is not authenticated. Cannot add to bucket.');
+        console.error("User is not authenticated. Cannot add to bucket.");
         return;
       }
 
       try {
         await addWordToBucket(userId, word);
       } catch (error) {
-        console.error('Error adding word to bucket:', error);
+        console.error("Error adding word to bucket:", error);
       }
     };
 
     const removeFromBucket = async (wordId) => {
       const userId = auth.currentUser?.uid;
       if (!userId) {
-        console.error('User is not authenticated. Cannot remove from bucket.');
+        console.error("User is not authenticated. Cannot remove from bucket.");
         return;
       }
 
       try {
         await removeWordFromBucket(userId, wordId);
-        wordBucket.value = wordBucket.value.filter((word) => word.id !== wordId);
+        wordBucket.value = wordBucket.value.filter(
+          (word) => word.id !== wordId
+        );
       } catch (error) {
-        console.error('Error removing word from bucket:', error);
+        console.error("Error removing word from bucket:", error);
       }
     };
 
@@ -200,11 +216,12 @@ export default {
       try {
         const allWords = await getAllCvcWords();
         if (allWords.length > 0) {
-          const randomWord = allWords[Math.floor(Math.random() * allWords.length)];
+          const randomWord =
+            allWords[Math.floor(Math.random() * allWords.length)];
           const userId = auth.currentUser?.uid;
 
           if (!userId) {
-            console.error('User is not authenticated. Cannot draw word.');
+            console.error("User is not authenticated. Cannot draw word.");
             return;
           }
 
@@ -215,10 +232,10 @@ export default {
 
           currentWord.value = randomWord;
         } else {
-          alert('No words available to draw.');
+          alert("No words available to draw.");
         }
       } catch (error) {
-        console.error('Error drawing word:', error);
+        console.error("Error drawing word:", error);
       }
     };
 
@@ -233,7 +250,9 @@ export default {
     const listenToBucketUpdates = () => {
       const userId = auth.currentUser?.uid;
       if (!userId) {
-        console.warn('User is not authenticated. Cannot listen to bucket updates.');
+        console.warn(
+          "User is not authenticated. Cannot listen to bucket updates."
+        );
         return;
       }
 
@@ -250,7 +269,9 @@ export default {
         if (user) {
           listenToBucketUpdates();
         } else {
-          console.warn('User is not authenticated. Skipping bucket updates listener.');
+          console.warn(
+            "User is not authenticated. Skipping bucket updates listener."
+          );
         }
 
         // Unsubscribe from the auth state listener after it runs once
@@ -277,9 +298,9 @@ export default {
       removeFromBucket,
       drawWord,
       selectWord,
-      toggleCase
+      toggleCase,
     };
-  }
+  },
 };
 </script>
 
@@ -393,7 +414,11 @@ export default {
   animation: bounceIn 0.5s ease-out;
 }
 @keyframes bounceIn {
-  0%, 20%, 50%, 80%, 100% {
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
     transform: translateY(0);
   }
   40% {
