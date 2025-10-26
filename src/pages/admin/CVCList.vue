@@ -286,7 +286,7 @@ import {
   uploadCvcAudio, 
   updateCvcWord 
 } from '../../services/firebaseCVC';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db, storage } from '../../firebase';
 import { ref as storageRef, deleteObject } from 'firebase/storage';
 import { useToast } from 'vue-toastification';

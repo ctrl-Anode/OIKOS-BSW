@@ -1,307 +1,190 @@
 <template>
-  <div class="learn-cvc-view">
-    <h1 class="text-2xl font-bold mb-6">Learn CVC Words</h1>
-
+  <div>
+    <h3 class="text-xl font-bold mb-4">Learn CVC Words</h3>
     <!-- Teaching Screen -->
-    <div class="teaching-screen mb-6 relative">
-      <h2 class="text-xl font-bold">Teaching Screen</h2>
-      <div v-if="currentWord" class="current-word-display">
-        <h3 class="text-3xl font-bold mb-4">
-          {{
-            isUppercase
-              ? currentWord.word.toUpperCase()
-              : currentWord.word.toLowerCase()
-          }}
-        </h3>
-
-        <div class="flex gap-2 mb-4">
+    <div class="flex flex-col items-center mb-8">
+      <div class="mb-2 font-semibold">Teaching Screen</div>
+      <div
+        class="bg-white rounded-xl shadow p-8 flex flex-col items-center"
+        @touchstart="startTouch($event)"
+        @touchend="endTouch($event, selectedWord?.word)"
+      >
+        <div class="text-3xl font-bold mb-4">
+          {{ selectedWord?.word || 'Draw a word!' }}
+        </div>
+        <div class="flex gap-4 mb-4">
           <button
-            v-for="(letter, index) in currentWord.word.split('')"
-            :key="index"
-            class="letter-btn hover-scale"
-            @click="playLetter(currentWord.audios.letters[index], letter)"
+            v-for="(letter, idx) in selectedWord?.word?.split('') || []"
+            :key="idx"
+            class="bg-blue-100 text-blue-700 font-bold rounded-full w-12 h-12 flex items-center justify-center text-xl shadow"
+            @click="playPhonetic(letter)"
           >
-            {{ isUppercase ? letter.toUpperCase() : letter.toLowerCase() }}
+            {{ letter }}
           </button>
         </div>
-
         <button
-          class="play-btn"
-          @click="playFullWord(currentWord.audios.full, currentWord.word)"
+          v-if="selectedWord"
+          class="bg-green-500 text-white px-6 py-2 rounded font-bold shadow"
+          @click="speakWord(selectedWord.word)"
         >
           Play Word
         </button>
       </div>
-      <div v-else class="text-gray-500">No word selected.</div>
+    </div>
 
-      <!-- Toggle Case Button -->
+    <!-- Draw CVC Word Button -->
+    <div class="flex justify-center mb-6">
       <button
-        class="toggle-case-btn absolute bottom-4 right-4"
-        @click="toggleCase"
+        class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold px-6 py-3 rounded shadow"
+        @click="drawWord"
+        :disabled="filteredWords.length === 0"
       >
-        {{ isUppercase ? "LC" : "UC" }}
+        🪄 Draw CVC Word
       </button>
     </div>
 
-    <div class="mt-8 text-center">
-      <button class="random-word-btn" @click="drawWord">
-        🎲 Draw CVC Word
-      </button>
-    </div>
-
-    <div class="word-bucket-sidebar">
-      <h2 class="text-xl font-bold mb-4">Word Bucket</h2>
-
-      <!-- Search and Filter Controls -->
-      <div class="filter-controls mb-4">
+    <!-- Word Bucket -->
+    <div class="bg-gray-50 rounded-xl shadow p-6">
+      <h4 class="font-bold text-lg mb-4">Word Bucket</h4>
+      <div class="flex gap-2 mb-4">
         <input
-          v-model="searchQuery"
+          v-model="search"
           type="text"
           placeholder="Search words..."
-          class="search-input"
+          class="border px-3 py-2 rounded w-full"
         />
-        <select v-model="selectedCategory" class="category-select">
+        <select v-model="selectedCategory" class="border px-3 py-2 rounded">
           <option value="">All Categories</option>
           <option
-            v-for="category in categories"
-            :key="category"
-            :value="category"
+            v-for="cat in categories"
+            :key="cat.id"
+            :value="cat.name"
           >
-            {{ category }}
+            {{ cat.name }}
           </option>
         </select>
       </div>
-
-      <!-- Paginated and Filtered Word List -->
-      <div v-if="paginatedWords.length === 0" class="text-center text-gray-500">
-        No words match your criteria.
-      </div>
-
-      <ul v-else class="space-y-4">
-        <li v-for="word in paginatedWords" :key="word.id" class="bucket-item">
-          <div class="flex justify-between items-center">
-            <div>
-              <h3 class="text-lg font-semibold">
-                {{ word.word.toUpperCase() }}
-              </h3>
-              <button class="play-btn" @click="selectWord(word)">Select</button>
-            </div>
-            <button class="delete-btn" @click="removeFromBucket(word.id)">
-              Remove
-            </button>
-          </div>
-        </li>
-      </ul>
-
-      <!-- Pagination Controls -->
       <div
-        class="pagination-controls mt-4 flex justify-center items-center gap-2"
+        v-for="word in filteredWords"
+        :key="word.id"
+        class="flex items-center justify-between bg-white rounded-lg shadow mb-3 px-4 py-3"
       >
+        <span class="font-bold text-lg">{{ word.word }}</span>
         <button
-          class="pagination-btn"
-          :disabled="currentPage === 1"
-          @click="currentPage--"
+          class="bg-green-400 text-white px-4 py-1 rounded font-bold"
+          @click="selectWord(word)"
         >
-          Previous
+          Select
         </button>
-        <span>Page {{ currentPage }} of {{ totalPages }}</span>
         <button
-          class="pagination-btn"
-          :disabled="currentPage === totalPages"
-          @click="currentPage++"
+          class="bg-red-500 text-white px-4 py-1 rounded font-bold"
+          @click="removeWord(word.id)"
         >
-          Next
+          Remove
         </button>
+      </div>
+      <div
+        v-if="filteredWords.length === 0"
+        class="text-gray-500 text-center py-4"
+      >
+        No words found.
       </div>
     </div>
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, computed, onMounted } from "vue";
-import {
-  getAllCvcWords,
-  addWordToBucket,
-  removeWordFromBucket,
-  listenToWordBucket,
-} from "../../services/firebaseCVC";
-import { audioEngine } from "../../services/audioEngine";
-import { auth } from "../../firebase";
+import { db } from "../../firebase";
+import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
 
-export default {
-  name: "LearnCVCView",
-  setup() {
-    const words = ref([]);
-    const wordBucket = ref([]);
-    const currentWord = ref(null);
-    const isUppercase = ref(true);
-    const searchQuery = ref("");
-    const selectedCategory = ref("");
-    const currentPage = ref(1);
-    const itemsPerPage = ref(5);
+const cvcWords = ref([]);
+const categories = ref([]);
+const selectedWord = ref(null);
+const search = ref("");
+const selectedCategory = ref("");
 
-    const categories = computed(() => {
-      const uniqueCategories = new Set(
-        wordBucket.value.map((word) => word.category)
-      );
-      return Array.from(uniqueCategories);
-    });
+// Swipe detection for teaching screen
+let touchStartX = 0;
+function startTouch(e) {
+  touchStartX = e.changedTouches[0].screenX;
+}
+function endTouch(e, word) {
+  const touchEndX = e.changedTouches[0].screenX;
+  if (Math.abs(touchEndX - touchStartX) > 50 && word) {
+    speakWord(word);
+  }
+}
 
-    const filteredWords = computed(() => {
-      return wordBucket.value.filter((word) => {
-        const matchesSearch = word.word
-          .toLowerCase()
-          .includes(searchQuery.value.toLowerCase());
-        const matchesCategory = selectedCategory.value
-          ? word.category === selectedCategory.value
-          : true;
-        return matchesSearch && matchesCategory;
-      });
-    });
+// Fetch words and categories
+onMounted(async () => {
+  const wordSnap = await getDocs(collection(db, "cvcWords"));
+  cvcWords.value = wordSnap.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
+  const catSnap = await getDocs(collection(db, "cvc_category"));
+  categories.value = catSnap.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
+});
 
-    const totalPages = computed(() => {
-      return Math.ceil(filteredWords.value.length / itemsPerPage.value);
-    });
+// Draw random word
+function drawWord() {
+  if (filteredWords.value.length === 0) return;
+  const idx = Math.floor(Math.random() * filteredWords.value.length);
+  selectedWord.value = filteredWords.value[idx];
+}
 
-    const paginatedWords = computed(() => {
-      const start = (currentPage.value - 1) * itemsPerPage.value;
-      const end = start + itemsPerPage.value;
-      return filteredWords.value.slice(start, end);
-    });
+// Select word from bucket
+function selectWord(word) {
+  selectedWord.value = word;
+}
 
-    const fetchWords = async () => {
-      words.value = await getAllCvcWords();
-    };
+// Remove word
+async function removeWord(id) {
+  await deleteDoc(doc(db, "cvcWords", id));
+  cvcWords.value = cvcWords.value.filter((w) => w.id !== id);
+  if (selectedWord.value?.id === id) selectedWord.value = null;
+}
 
-    const playFullWord = async (audioUrl, word) => {
-      await audioEngine.playWord(word, audioUrl);
-    };
+// Filtered words
+const filteredWords = computed(() => {
+  let words = cvcWords.value;
+  if (search.value) {
+    words = words.filter((w) =>
+      w.word.toLowerCase().includes(search.value.toLowerCase())
+    );
+  }
+  if (selectedCategory.value) {
+    words = words.filter((w) => w.category === selectedCategory.value);
+  }
+  return words;
+});
 
-    const playLetter = async (letterAudioUrl, letter) => {
-      await audioEngine.playWord(letter, letterAudioUrl);
-    };
+// Play phonetic audio for letter
+function playPhonetic(letter) {
+  if (!letter) return;
+  const audio = new Audio(
+    new URL(
+      `../../assets/phonetics/${letter.toLowerCase()}.mp3`,
+      import.meta.url
+    ).href
+  );
+  audio.play();
+}
 
-    const addToBucket = async (word) => {
-      const userId = auth.currentUser?.uid;
-      if (!userId) {
-        console.error("User is not authenticated. Cannot add to bucket.");
-        return;
-      }
-
-      try {
-        await addWordToBucket(userId, word);
-      } catch (error) {
-        console.error("Error adding word to bucket:", error);
-      }
-    };
-
-    const removeFromBucket = async (wordId) => {
-      const userId = auth.currentUser?.uid;
-      if (!userId) {
-        console.error("User is not authenticated. Cannot remove from bucket.");
-        return;
-      }
-
-      try {
-        await removeWordFromBucket(userId, wordId);
-        wordBucket.value = wordBucket.value.filter(
-          (word) => word.id !== wordId
-        );
-      } catch (error) {
-        console.error("Error removing word from bucket:", error);
-      }
-    };
-
-    const drawWord = async () => {
-      try {
-        const allWords = await getAllCvcWords();
-        if (allWords.length > 0) {
-          const randomWord =
-            allWords[Math.floor(Math.random() * allWords.length)];
-          const userId = auth.currentUser?.uid;
-
-          if (!userId) {
-            console.error("User is not authenticated. Cannot draw word.");
-            return;
-          }
-
-          // Add the drawn word to Firestore if it doesn't already exist
-          if (!wordBucket.value.some((w) => w.id === randomWord.id)) {
-            await addToBucket(randomWord);
-          }
-
-          currentWord.value = randomWord;
-        } else {
-          alert("No words available to draw.");
-        }
-      } catch (error) {
-        console.error("Error drawing word:", error);
-      }
-    };
-
-    const selectWord = (word) => {
-      currentWord.value = word;
-    };
-
-    const toggleCase = () => {
-      isUppercase.value = !isUppercase.value;
-    };
-
-    const listenToBucketUpdates = () => {
-      const userId = auth.currentUser?.uid;
-      if (!userId) {
-        console.warn(
-          "User is not authenticated. Cannot listen to bucket updates."
-        );
-        return;
-      }
-
-      listenToWordBucket(userId, (updatedBucket) => {
-        wordBucket.value = updatedBucket;
-      });
-    };
-
-    onMounted(() => {
-      fetchWords();
-
-      // Wait for authentication before setting up the listener
-      const unsubscribe = auth.onAuthStateChanged((user) => {
-        if (user) {
-          listenToBucketUpdates();
-        } else {
-          console.warn(
-            "User is not authenticated. Skipping bucket updates listener."
-          );
-        }
-
-        // Unsubscribe from the auth state listener after it runs once
-        unsubscribe();
-      });
-    });
-
-    return {
-      words,
-      wordBucket,
-      currentWord,
-      isUppercase,
-      searchQuery,
-      selectedCategory,
-      currentPage,
-      itemsPerPage,
-      categories,
-      filteredWords,
-      totalPages,
-      paginatedWords,
-      playFullWord,
-      playLetter,
-      addToBucket,
-      removeFromBucket,
-      drawWord,
-      selectWord,
-      toggleCase,
-    };
-  },
-};
+// Speak word aloud
+function speakWord(word) {
+  if (!word) return;
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.cancel();
+    const utter = new window.SpeechSynthesisUtterance(word);
+    utter.rate = 0.7;
+    window.speechSynthesis.speak(utter);
+  }
+}
 </script>
 
 <style scoped>

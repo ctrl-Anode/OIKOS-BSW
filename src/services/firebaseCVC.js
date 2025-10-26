@@ -10,12 +10,12 @@ export async function uploadCvcAudio(file, path) {
 }
 
 // Add new CVC word
-export async function addCvcWord({ word, category, audios }) {
+export async function addCvcWord({ word, category, updatedAt }) {
   return await addDoc(collection(db, 'cvcWords'), {
     word,
     category,
     difficulty: 'CVC',
-    audios,
+    updatedAt,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   });
@@ -28,10 +28,11 @@ export async function getAllCvcWords() {
 }
 
 // Update an existing CVC word
-export async function updateCvcWord(id, updatedData) {
+export async function updateCvcWord(id, { word, category, updatedAt }) {
   const wordRef = doc(db, 'cvcWords', id);
   await updateDoc(wordRef, {
-    ...updatedData,
+    word,
+    category,
     updatedAt: new Date().toISOString()
   });
 }
