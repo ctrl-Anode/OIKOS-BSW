@@ -5,8 +5,8 @@ const urlsToCache = [
   '/index.html',
   '/style.css',
   '/main.js',
-  '/assets/icons/icon-192x192.png',
-  '/assets/icons/icon-512x512.png'
+  '/TinyTalkers.png',
+  '/TinyTalkers.png'
 ];
 
 // Install event

@@ -110,7 +110,7 @@ app.use(Toast, toastOptions);
 // Register the service worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/src/service-worker.js')
+    navigator.serviceWorker.register('/service-worker.js')
       .then(registration => {
         console.log('ServiceWorker registration successful with scope: ', registration.scope);
       })
@@ -118,6 +118,26 @@ if ('serviceWorker' in navigator) {
         console.log('ServiceWorker registration failed: ', error);
       });
   });
+}
+
+// Ensure prompt() is called when the user interacts with the "Download App" button
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault(); // Prevent the default banner
+  window.deferredPrompt = e; // Save the event for later use
+});
+
+function installPWA() {
+  if (window.deferredPrompt) {
+    window.deferredPrompt.prompt();
+    window.deferredPrompt.userChoice.then((choiceResult) => {
+      if (choiceResult.outcome === 'accepted') {
+        console.log('User accepted the A2HS prompt');
+      } else {
+        console.log('User dismissed the A2HS prompt');
+      }
+      window.deferredPrompt = null;
+    });
+  }
 }
 
 app.mount('#app');
