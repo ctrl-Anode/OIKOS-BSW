@@ -12,6 +12,7 @@
             <li><a href="#for-grownups" class="hover:underline">For Grown‑ups</a></li>
           </ul>
         </nav>
+        <button @click="installPWA" v-if="deferredPrompt" class="bg-green-500 text-white px-4 py-2 rounded shadow hover:bg-green-600">Download App</button>
       </div>
     </header>
 
@@ -218,6 +219,27 @@ function goToLogin() {
 }
 function goToRegister() {
   router.push('/register')
+}
+
+const deferredPrompt = ref(null)
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault()
+  deferredPrompt.value = e
+})
+
+function installPWA() {
+  if (deferredPrompt.value) {
+    deferredPrompt.value.prompt()
+    deferredPrompt.value.userChoice.then(choiceResult => {
+      if (choiceResult.outcome === 'accepted') {
+        console.log('User accepted the A2HS prompt')
+      } else {
+        console.log('User dismissed the A2HS prompt')
+      }
+      deferredPrompt.value = null
+    })
+  }
 }
 </script>
 

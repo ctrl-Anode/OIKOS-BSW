@@ -1,0 +1,21 @@
+{
+  "name": "OIKOS BSW",
+  "short_name": "OIKOS",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4CAF50",
+  "description": "A Progressive Web App for OIKOS BSW",
+  "icons": [
+    {
+      "src": "TinyTalkers.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/icons/TinyTalkers.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
