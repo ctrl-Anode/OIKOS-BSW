@@ -10,15 +10,42 @@ export async function uploadCvcAudio(file, path) {
 }
 
 // Add new CVC word
-export async function addCvcWord({ word, category, audios }) {
+export async function addCvcWord({ word, category, updatedAt }) {
+  // Validate word
+  if (!word || !word.trim()) {
+    throw new Error('Word cannot be empty.');
+  }
+  
+  const cvcWord = word.trim().toUpperCase();
+  
+  if (cvcWord.length !== 3) {
+    throw new Error('Word must be exactly 3 characters long.');
+  }
+  
+  // Validate CVC pattern
+  const cvcPattern = /^[^aeiou][aeiou][^aeiou]$/i;
+  if (!cvcPattern.test(cvcWord)) {
+    throw new Error('Word must follow Consonant-Vowel-Consonant pattern.');
+  }
+  
+  // Validate category
+  if (!category || !category.trim()) {
+    throw new Error('Category is required.');
+  }
+  
   return await addDoc(collection(db, 'cvcWords'), {
-    word,
-    category,
+    word: cvcWord,
+    category: category.trim(),
     difficulty: 'CVC',
-    audios,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   });
+}
+
+// Check if a CVC word exists in the database (case-insensitive)
+export async function cvcWordExists(word) {
+  const snapshot = await getDocs(collection(db, 'cvcWords'));
+  return snapshot.docs.some(doc => doc.data().word.toLowerCase() === word.trim().toLowerCase());
 }
 
 // Fetch all CVC words
@@ -28,23 +55,18 @@ export async function getAllCvcWords() {
 }
 
 // Update an existing CVC word
-export async function updateCvcWord(id, updatedData) {
+export async function updateCvcWord(id, { word, category, updatedAt }) {
   const wordRef = doc(db, 'cvcWords', id);
   await updateDoc(wordRef, {
-    ...updatedData,
+    word,
+    category,
     updatedAt: new Date().toISOString()
   });
 }
 
-// Delete a CVC word and its associated audio files
-export async function deleteCvcWord(id, audioPaths) {
+// Delete a CVC word without requiring audio paths
+export async function deleteCvcWord(id) {
   const wordRef = doc(db, 'cvcWords', id);
-
-  // Delete audio files from Firebase Storage
-  for (const path of audioPaths) {
-    const audioRef = ref(storage, path);
-    await deleteObject(audioRef);
-  }
 
   // Delete Firestore document
   await deleteDoc(wordRef);
@@ -123,4 +145,35 @@ export function listenToWordBucket(userId, callback) {
     console.error('Error setting up listener for word bucket:', error);
     throw error;
   }
+}
+
+// Add a new category to the database
+export async function addCategory({ name }) {
+  if (!name || !name.trim()) {
+    throw new Error('Category name cannot be empty.');
+  }
+  
+  const categoryName = name.trim();
+  
+  if (categoryName.length < 2) {
+    throw new Error('Category name must be at least 2 characters long.');
+  }
+  
+  return await addDoc(collection(db, 'cvc_category'), {
+    name: categoryName,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  });
+}
+
+// Check if a category exists in the database (case-insensitive)
+export async function categoryExists(categoryName) {
+  const snapshot = await getDocs(collection(db, 'cvc_category'));
+  return snapshot.docs.some(doc => doc.data().name.toLowerCase() === categoryName.trim().toLowerCase());
+}
+
+// Get all categories
+export async function getAllCategories() {
+  const snapshot = await getDocs(collection(db, 'cvc_category'));
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
