@@ -4,7 +4,6 @@ import LoginPage from '../pages/auth/LoginPage.vue'
 import RegisterPage from '../pages/auth/RegisterPage.vue'
 import WelcomePage from '../pages/user/WelcomePage.vue'
 import LearningHubPage from '../pages/user/LearningHubPage.vue'
-import LearnCVCView from '../pages/user/LearnCVCView.vue'
 import AdminPanel from '../pages/admin/AdminPanel.vue'
 import { auth } from '../firebase';
 
@@ -35,7 +34,8 @@ const routes = [
   { path: '/register', component: RegisterPage },
   { path: '/app', component: WelcomePage },
   { path: '/app/hub', component: LearningHubPage },
-  { path: '/app/learn-cvc', component: LearnCVCView },
+  // Consolidated: redirect old CVC route to the Hub
+  { path: '/app/learn-cvc', redirect: '/app/hub' },
   { path: '/admin', component: AdminPanel },
   { path: '/admin/cvc-manager', redirect: '/admin' },
   { path: '/admin/manage-panel', redirect: '/admin' },
