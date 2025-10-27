@@ -2,12 +2,12 @@
   "rewrites": [
     { "source": "/(.*)", "destination": "/" }
   ],
-  "routes": [
+  "headers": [
     {
-      "src": "/service-worker.js",
-      "headers": {
-        "Cache-Control": "no-cache"
-      }
+      "source": "/service-worker.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache" }
+      ]
     }
   ]
 }
