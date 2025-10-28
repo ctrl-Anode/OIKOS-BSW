@@ -81,14 +81,14 @@
                 </button>
               </div>
             </transition>
-          </div>
 
-          <!-- Mobile Dropdown Backdrop -->
-          <div
-            v-if="isAdminDropdownOpen"
-            @click="closeAdminDropdown"
-            class="md:hidden fixed inset-0 bg-black/20 z-40"
-          ></div>
+            <!-- Mobile Dropdown Backdrop -->
+            <div
+              v-if="isAdminDropdownOpen"
+              @click="closeAdminDropdown"
+              class="md:hidden fixed inset-0 bg-black/20 z-40"
+            ></div>
+          </div>
         </div>
       </div>
     </header>
@@ -242,43 +242,146 @@
         class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 px-4"
         @click.self="toggleCategoryModal"
       >
-        <div class="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full transform transition-all">
-          <div class="text-center mb-4">
-            <h3 class="text-xl font-bold text-gray-800">Manage Categories</h3>
-          </div>
-          <div v-for="category in categories" :key="category.id" class="flex items-center gap-3 mb-4">
-            <input
-              v-model="category.name"
-              type="text"
-              class="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm"
-            />
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full transform transition-all max-h-[90vh] flex flex-col">
+          <!-- Modal Header -->
+          <div class="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white px-6 py-5 rounded-t-2xl flex items-center justify-between sticky top-0 z-10">
+            <div class="flex items-center gap-3">
+              <span class="text-3xl">🏷️</span>
+              <div>
+                <h3 class="text-xl sm:text-2xl font-bold">Manage Categories</h3>
+                <p class="text-blue-100 text-xs sm:text-sm mt-0.5">Edit or delete existing categories</p>
+              </div>
+            </div>
             <button
-              @click="updateCategory(category)"
-              class="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-all"
+              @click="toggleCategoryModal"
+              class="p-2 hover:bg-white/20 rounded-lg transition-all active:scale-95"
+              aria-label="Close modal"
             >
-              Save
-            </button>
-            <button
-              @click="confirmDeleteCategory(category.id)"
-              class="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-all"
-            >
-              Delete
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
           </div>
-          <div v-if="categoryToDelete" class="mt-4">
-            <p class="text-gray-600 text-center mb-4">Are you sure you want to delete this category?</p>
-            <div class="flex gap-3">
-              <button
-                @click="cancelDeleteCategory"
-                class="flex-1 px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold rounded-xl transition-all active:scale-95"
+
+          <!-- Modal Content -->
+          <div class="flex-1 overflow-y-auto p-4 sm:p-6">
+            <!-- Empty State -->
+            <div v-if="categories.length === 0" class="text-center py-12">
+              <div class="text-6xl mb-4 opacity-50">📂</div>
+              <p class="text-gray-500 text-lg font-semibold">No categories yet</p>
+              <p class="text-gray-400 text-sm mt-2">Add your first category to get started</p>
+            </div>
+
+            <!-- Categories List -->
+            <div v-else class="space-y-3">
+              <div 
+                v-for="(category, index) in categories" 
+                :key="category.id" 
+                class="bg-gradient-to-r from-gray-50 to-slate-50 border-2 border-gray-200 rounded-xl p-4 hover:shadow-md transition-all duration-200"
               >
-                Cancel
-              </button>
+                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                  <!-- Category Number Badge -->
+                  <div class="flex items-center gap-3 flex-1 w-full sm:w-auto">
+                    <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0">
+                      {{ index + 1 }}
+                    </div>
+                    
+                    <!-- Category Input -->
+                    <input
+                      v-model="category.name"
+                      type="text"
+                      placeholder="Category name..."
+                      :disabled="editingCategoryId !== category.id"
+                      :class="[
+                        'flex-1 px-4 py-2.5 border-2 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm sm:text-base font-medium',
+                        editingCategoryId === category.id ? 'border-gray-300 bg-white' : 'border-gray-200 bg-gray-100 text-gray-700'
+                      ]"
+                      @keyup.enter="editingCategoryId === category.id ? saveCategory(category) : null"
+                    />
+                  </div>
+
+                  <!-- Action Button -->
+                  <div class="w-full sm:w-auto">
+                    <button
+                      v-if="editingCategoryId === category.id"
+                      @click="saveCategory(category)"
+                      class="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg active:scale-95 flex items-center justify-center gap-2"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>Save</span>
+                    </button>
+                    <button
+                      v-else
+                      @click="startEditing(category.id)"
+                      class="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg active:scale-95 flex items-center justify-center gap-2"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      <span>Edit</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Delete Button (appears when editing) -->
+                <transition name="slide-down">
+                  <div v-if="editingCategoryId === category.id" class="mt-3 pt-3 border-t border-gray-200">
+                    <button
+                      @click="confirmDeleteCategory(category.id)"
+                      class="w-full px-4 py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg active:scale-95 flex items-center justify-center gap-2"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      <span>Delete Category</span>
+                    </button>
+                  </div>
+                </transition>
+              </div>
+            </div>
+          </div>
+
+          <!-- Delete Confirmation Overlay -->
+          <transition name="slide-up">
+            <div v-if="categoryToDelete" class="border-t-2 border-red-200 bg-red-50 p-4 sm:p-6 rounded-b-2xl">
+              <div class="flex items-start gap-3 mb-4">
+                <div class="text-3xl">⚠️</div>
+                <div class="flex-1">
+                  <h4 class="text-lg font-bold text-red-800 mb-1">Confirm Deletion</h4>
+                  <p class="text-red-700 text-sm">Are you sure you want to delete this category? This action cannot be undone.</p>
+                </div>
+              </div>
+              <div class="flex gap-3">
+                <button
+                  @click="cancelDeleteCategory"
+                  class="flex-1 px-4 py-3 bg-white hover:bg-gray-100 text-gray-800 font-bold rounded-xl transition-all active:scale-95 border-2 border-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  @click="deleteCategory"
+                  class="flex-1 px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95"
+                >
+                  Delete Category
+                </button>
+              </div>
+            </div>
+          </transition>
+
+          <!-- Modal Footer -->
+          <div class="border-t border-gray-200 px-6 py-4 bg-gray-50 rounded-b-2xl">
+            <div class="flex items-center justify-between text-sm text-gray-600">
+              <span class="flex items-center gap-2">
+                <span class="font-semibold text-blue-600">{{ categories.length }}</span> 
+                {{ categories.length === 1 ? 'category' : 'categories' }} total
+              </span>
               <button
-                @click="deleteCategory"
-                class="flex-1 px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95"
+                @click="toggleCategoryModal"
+                class="px-4 py-2 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-semibold rounded-lg transition-all active:scale-95"
               >
-                Delete
+                Close
               </button>
             </div>
           </div>
@@ -314,13 +417,14 @@ export default {
     const isAdminDropdownOpen = ref(false);
     const showCategoryModal = ref(false);
     const categoryToDelete = ref(null);
+    const editingCategoryId = ref(null);
 
     const getAvatarUrl = (filename) => {
       return new URL(`../../assets/avatars/${filename}`, import.meta.url).href;
     };
 
     const toggleAdminDropdown = () => {
-      isAdminDropdownOpen.value = !isAdminDropdown.value;
+      isAdminDropdownOpen.value = !isAdminDropdownOpen.value;
     };
 
     const closeAdminDropdown = () => {
@@ -410,17 +514,43 @@ export default {
 
     const toggleCategoryModal = () => {
       showCategoryModal.value = !showCategoryModal.value;
+      if (!showCategoryModal.value) {
+        editingCategoryId.value = null;
+        categoryToDelete.value = null;
+      }
     };
 
-    const updateCategory = async (category) => {
+    const startEditing = (categoryId) => {
+      editingCategoryId.value = categoryId;
+    };
+
+    const saveCategory = async (category) => {
+      if (!category.name.trim()) {
+        toast.error('Category name cannot be empty.');
+        return;
+      }
+
+      if (category.name.trim().length < 2) {
+        toast.error('Category name must be at least 2 characters long.');
+        return;
+      }
+
       try {
         const categoryRef = doc(db, 'cvc_category', category.id);
-        await updateDoc(categoryRef, { name: category.name });
+        await updateDoc(categoryRef, { 
+          name: category.name.trim(),
+          updatedAt: new Date().toISOString()
+        });
+        editingCategoryId.value = null;
         toast.success('Category updated successfully!');
       } catch (error) {
         console.error('Error updating category:', error);
         toast.error('Failed to update category. Please try again.');
       }
+    };
+
+    const updateCategory = async (category) => {
+      await saveCategory(category);
     };
 
     const confirmDeleteCategory = (categoryId) => {
@@ -437,6 +567,7 @@ export default {
         const categoryRef = doc(db, 'cvc_category', categoryToDelete.value);
         await deleteDoc(categoryRef);
         categoryToDelete.value = null;
+        editingCategoryId.value = null;
         await fetchCategories();
         toast.success('Category deleted successfully!');
       } catch (error) {
@@ -484,14 +615,17 @@ export default {
       confirmDeleteCategory,
       cancelDeleteCategory,
       deleteCategory,
-      categoryToDelete
+      categoryToDelete,
+      editingCategoryId,
+      startEditing,
+      saveCategory
     };
   }
 };
 </script>
 
 <style scoped>
-/* Dropdown transitions */
+/* Ensure dropdown visibility and transitions */
 .dropdown-enter-active,
 .dropdown-leave-active {
   transition: all 0.2s ease;
@@ -541,5 +675,27 @@ export default {
 .slide-down-leave-to {
   max-height: 0;
   opacity: 0;
+}
+
+/* Slide up transition for delete confirmation */
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-up-enter-from {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.slide-up-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.slide-up-enter-to,
+.slide-up-leave-from {
+  opacity: 1;
+  transform: translateY(0);
 }
 </style>
