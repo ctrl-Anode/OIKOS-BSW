@@ -1,11 +1,11 @@
 {
-  "name": "OIKOS BSW",
-  "short_name": "OIKOS",
+  "name": "OIKOS BSW - TinyTalkers",
+  "short_name": "TinyTalkers",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4CAF50",
-  "description": "A Progressive Web App for OIKOS BSW",
+  "description": "A Progressive Web App for OIKOS BSW - TinyTalkers project.",
   "icons": [
     {
       "src": "TinyTalkers.png",
