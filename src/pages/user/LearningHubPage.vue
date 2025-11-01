@@ -166,12 +166,12 @@
                 <span>{{ showCategoryFilter ? 'Hide' : 'Show' }} Categories</span>
               </button>
               <button
-                class="bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed text-white font-bold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
+                class="bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed text-white font-bold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 active:scale-95 flex items-center justify-center gap-2 min-w-[200px]"
                 @click="drawWord"
-                :disabled="filteredWords.length === 0"
+                :disabled="filteredWords.length === 0 || drawCooldown > 0"
               >
-                <span class="text-xl">🪄</span>
-                <span>Draw CVC Word</span>
+                <span class="text-xl">{{ drawCooldown > 0 ? '⏱️' : '🪄' }}</span>
+                <span>{{ drawCooldown > 0 ? `Wait ${drawCooldown}s` : 'Draw CVC Word' }}</span>
               </button>
               <button
                 class="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
@@ -197,10 +197,10 @@
               <button
                 class="bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed text-white font-bold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
                 @click="drawWord"
-                :disabled="filteredWords.length === 0"
+                :disabled="filteredWords.length === 0 || drawCooldown > 0"
               >
-                <span class="text-xl">🪄</span>
-                <span>Draw CVC Word</span>
+                <span class="text-xl">{{ drawCooldown > 0 ? '⏱️' : '🪄' }}</span>
+                <span>{{ drawCooldown > 0 ? `Wait ${drawCooldown}s` : 'Draw CVC Word' }}</span>
               </button>
               <button
                 class="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
@@ -432,6 +432,10 @@ let unsubscribeAuth = null;
 let unsubscribeBucket = null;
 const toast = useToast();
 
+// Draw cooldown
+const drawCooldown = ref(0);
+let cooldownTimer = null;
+
 // Background Music
 const bgMusicRef = ref(null);
 const isMusicPlaying = ref(true);
@@ -577,6 +581,12 @@ onUnmounted(() => {
     bgMusicRef.value.pause();
     bgMusicRef.value = null;
   }
+  
+  // Clean up cooldown timer
+  if (cooldownTimer) {
+    clearInterval(cooldownTimer);
+    cooldownTimer = null;
+  }
 });
 
 // Persist toggle state across route changes
@@ -686,9 +696,22 @@ function playCelebration() {
 // Draw random word
 async function drawWord() {
   if (filteredWords.value.length === 0) return;
+  if (drawCooldown.value > 0) return; // Prevent drawing during cooldown
+  
   const idx = Math.floor(Math.random() * filteredWords.value.length);
   const drawn = filteredWords.value[idx];
   selectedWord.value = drawn;
+  
+  // Start 5-second cooldown
+  drawCooldown.value = 10;
+  cooldownTimer = setInterval(() => {
+    drawCooldown.value--;
+    if (drawCooldown.value <= 0) {
+      clearInterval(cooldownTimer);
+      cooldownTimer = null;
+    }
+  }, 1000);
+  
   // Add to user's personal bucket (no duplicates)
   if (userId.value && drawn) {
     const exists = bucketWords.value.some((w) => w.id === drawn.id);
