@@ -43,7 +43,8 @@
         <div
           v-for="word in paginatedWords"
           :key="word.id"
-          class="bg-white rounded-2xl shadow-lg p-6 relative"
+          class="bg-white rounded-2xl shadow-lg p-6 relative transition-all duration-300"
+          :class="{ 'newly-added': newlyAddedIds.has(word.id), 'word-card-enter': true }"
         >
           <h3 class="text-3xl font-bold text-center">{{ word.word.toUpperCase() }}</h3>
           <p class="text-center text-gray-600 mt-2">{{ word.category }}</p>
@@ -104,16 +105,34 @@
             <h3 class="text-2xl font-bold">Edit Word</h3>
           </div>
           <div class="p-6">
-            <label class="block text-sm font-bold text-gray-700 mb-2">Word</label>
+            <!-- Validation Errors Display -->
+            <div v-if="validationErrors.length > 0" class="mb-4 p-4 bg-red-50 border-2 border-red-300 rounded-lg">
+              <p class="font-bold text-red-700 mb-2">⚠️ Validation Errors:</p>
+              <ul class="list-disc list-inside space-y-1">
+                <li v-for="(error, index) in validationErrors" :key="index" class="text-red-600 text-sm">
+                  {{ error }}
+                </li>
+              </ul>
+            </div>
+            
+            <label class="block text-sm font-bold text-gray-700 mb-2">Word (CVC Format)</label>
             <input
               v-model="editingWord.word"
+              @input="validateInRealTime"
               type="text"
-              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg"
+              maxlength="3"
+              placeholder="e.g., cat, dog, run"
+              class="w-full px-4 py-3 border-2 rounded-lg transition-colors"
+              :class="validationErrors.length > 0 ? 'border-red-500 focus:border-red-600' : 'border-gray-300 focus:border-purple-500'"
             />
+            <p class="text-xs text-gray-500 mt-1">Must be 3 letters: Consonant-Vowel-Consonant</p>
+            
             <label class="block text-sm font-bold text-gray-700 mt-4 mb-2">Category</label>
             <select
               v-model="editingWord.category"
-              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg"
+              @change="validateInRealTime"
+              class="w-full px-4 py-3 border-2 rounded-lg transition-colors"
+              :class="!editingWord.category ? 'border-red-500' : 'border-gray-300 focus:border-purple-500'"
             >
               <option value="" disabled>Select a category</option>
               <option v-for="category in categories" :key="category.id" :value="category.name">
@@ -124,15 +143,19 @@
           <div class="p-6 flex justify-end gap-3">
             <button
               @click="closeEditModal"
-              class="px-6 py-3 bg-gray-300 text-gray-800 font-bold rounded-lg"
+              class="px-6 py-3 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold rounded-lg transition-colors"
             >
               Cancel
             </button>
             <button
               @click="saveChanges"
-              class="px-6 py-3 bg-green-500 text-white font-bold rounded-lg"
+              :disabled="validationErrors.length > 0 || !editingWord.word || !editingWord.category"
+              class="px-6 py-3 font-bold rounded-lg transition-colors"
+              :class="validationErrors.length > 0 || !editingWord.word || !editingWord.category 
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                : 'bg-green-500 hover:bg-green-600 text-white'"
             >
-              Save
+              Save Changes
             </button>
           </div>
         </div>
@@ -188,11 +211,13 @@ export default {
     const wordToDelete = ref(null);
     const searchQuery = ref('');
     const selectedCategory = ref('');
+    const validationErrors = ref([]);
     const currentPage = ref(1);
     const itemsPerPage = ref(6);
     const unsubscribeWords = ref(null);
     const unsubscribeCategories = ref(null);
     const visibleWordId = ref(null);
+    const newlyAddedIds = ref(new Set());
 
     const loadWords = async () => {
       try {
@@ -221,23 +246,144 @@ export default {
 
     const openEditModal = (word) => {
       editingWord.value = { ...word };
+      validationErrors.value = [];
     };
 
     const closeEditModal = () => {
       editingWord.value = null;
+      validationErrors.value = [];
+    };
+    
+    const validateInRealTime = () => {
+      if (!editingWord.value) return;
+      
+      validationErrors.value = [];
+      
+      // Validate word
+      if (editingWord.value.word) {
+        const validation = validateCVCWord(editingWord.value.word);
+        if (!validation.isValid) {
+          validationErrors.value = [...validation.errors];
+        }
+      }
+      
+      // Validate category
+      if (!editingWord.value.category) {
+        validationErrors.value.push('Category is required');
+      }
+    };
+
+    const validateCVCWord = (word) => {
+      // Validation rules
+      const errors = [];
+      
+      // 1. Check if word exists and is not empty
+      if (!word || !word.trim()) {
+        errors.push('Word cannot be empty');
+        return { isValid: false, errors };
+      }
+      
+      // 2. Trim and convert to lowercase for validation
+      const cleanWord = word.trim().toLowerCase();
+      
+      // 3. Check if it's exactly 3 letters (CVC format)
+      if (cleanWord.length !== 3) {
+        errors.push('Word must be exactly 3 letters (CVC format)');
+      }
+      
+      // 4. Check if it contains only letters
+      if (!/^[a-z]+$/i.test(cleanWord)) {
+        errors.push('Word must contain only letters');
+      }
+      
+      // 5. Check CVC pattern: consonant-vowel-consonant
+      const vowels = ['a', 'e', 'i', 'o', 'u'];
+      const consonants = 'bcdfghjklmnpqrstvwxyz';
+      
+      if (cleanWord.length === 3) {
+        const firstLetter = cleanWord[0];
+        const middleLetter = cleanWord[1];
+        const lastLetter = cleanWord[2];
+        
+        // First letter should be a consonant
+        if (!consonants.includes(firstLetter)) {
+          errors.push('First letter must be a consonant');
+        }
+        
+        // Middle letter should be a vowel
+        if (!vowels.includes(middleLetter)) {
+          errors.push('Middle letter must be a vowel (a, e, i, o, u)');
+        }
+        
+        // Last letter should be a consonant
+        if (!consonants.includes(lastLetter)) {
+          errors.push('Last letter must be a consonant');
+        }
+      }
+      
+      return {
+        isValid: errors.length === 0,
+        errors,
+        cleanWord
+      };
     };
 
     const saveChanges = async () => {
       try {
+        // Validate word field
+        if (!editingWord.value || !editingWord.value.word) {
+          toast.error('Word is required');
+          return;
+        }
+        
+        // Validate category field
+        if (!editingWord.value.category || editingWord.value.category.trim() === '') {
+          toast.error('Category is required');
+          return;
+        }
+        
+        // Check if category exists in the categories list
+        const categoryExists = categories.value.some(
+          cat => cat.name === editingWord.value.category
+        );
+        
+        if (!categoryExists) {
+          toast.error('Selected category does not exist');
+          return;
+        }
+        
+        // Validate CVC format
+        const validation = validateCVCWord(editingWord.value.word);
+        
+        if (!validation.isValid) {
+          // Show all validation errors
+          validation.errors.forEach(error => {
+            toast.error(error);
+          });
+          return;
+        }
+        
+        // Check for duplicates (excluding current word)
+        const duplicate = words.value.find(
+          w => w.word.toLowerCase() === validation.cleanWord && w.id !== editingWord.value.id
+        );
+        
+        if (duplicate) {
+          toast.error(`Word "${validation.cleanWord}" already exists in category "${duplicate.category}"`);
+          return;
+        }
+        
+        // If all validations pass, update the word
         await updateCvcWord(editingWord.value.id, {
-          word: editingWord.value.word,
-          category: editingWord.value.category,
+          word: validation.cleanWord,
+          category: editingWord.value.category.trim(),
         });
+        
         closeEditModal();
         toast.success('Word updated successfully!');
       } catch (error) {
         console.error('Error saving changes:', error);
-        toast.error('Failed to save changes.');
+        toast.error('Failed to save changes: ' + error.message);
       }
     };
 
@@ -306,11 +452,41 @@ export default {
     onMounted(async () => {
       // Real-time updates for cvcWords
       const wordsCol = collection(db, 'cvcWords');
+      let isFirstLoad = true;
+      
       unsubscribeWords.value = onSnapshot(
         wordsCol,
         (snapshot) => {
-          words.value = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+          const previousIds = new Set(words.value.map(w => w.id));
+          const newWords = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+          
+          // Detect newly added words (only after first load)
+          if (!isFirstLoad) {
+            snapshot.docChanges().forEach((change) => {
+              if (change.type === 'added') {
+                const newId = change.doc.id;
+                if (!previousIds.has(newId)) {
+                  // Mark as newly added
+                  newlyAddedIds.value.add(newId);
+                  // Show toast notification
+                  toast.success(`New word "${change.doc.data().word}" added!`);
+                  // Remove highlight after 3 seconds
+                  setTimeout(() => {
+                    newlyAddedIds.value.delete(newId);
+                  }, 3000);
+                }
+              }
+              
+              // Handle updates
+              if (change.type === 'modified') {
+                toast.info(`Word "${change.doc.data().word}" updated`);
+              }
+            });
+          }
+          
+          words.value = newWords;
           loading.value = false;
+          isFirstLoad = false;
         },
         (error) => {
           console.error('Error listening to cvcWords:', error);
@@ -343,6 +519,7 @@ export default {
       filteredWords,
       paginatedWords,
       totalPages,
+      validationErrors,
       openEditModal,
       closeEditModal,
       saveChanges,
@@ -351,7 +528,9 @@ export default {
       nextPage,
       prevPage,
       visibleWordId,
-      toggleVisibility
+      toggleVisibility,
+      validateInRealTime,
+      newlyAddedIds
     };
   },
 };
@@ -389,5 +568,68 @@ export default {
   border: 1px solid #ddd;
   border-radius: 4px;
 }
-/* ...existing styles... */
+
+/* Newly added word highlight animation */
+.newly-added {
+  animation: highlightPulse 2s ease-in-out;
+  border: 3px solid #10b981 !important;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.5) !important;
+}
+
+@keyframes highlightPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.8);
+  }
+}
+
+/* Card enter animation */
+.word-card-enter {
+  animation: slideInUp 0.4s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Toast notification styles enhancement */
+.newly-added::before {
+  content: '✨ NEW';
+  position: absolute;
+  top: -12px;
+  right: 10px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+  animation: bounceIn 0.6s ease-out;
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0) translateY(-10px);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2) translateY(-5px);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
 </style>

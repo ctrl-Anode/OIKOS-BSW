@@ -36,13 +36,6 @@
         </button>
         <button
           v-if="!isLoggedIn"
-          @click="goToLogin"
-          class="bg-white/90 text-purple-700 border-2 border-white text-lg sm:text-2xl font-bold px-8 sm:px-12 py-3 sm:py-4 rounded-full shadow-2xl hover:scale-105 transform transition-all duration-300"
-        >
-          Sign in to Save ♥
-        </button>
-        <button
-          v-if="!isLoggedIn"
           @click="goToRegister"
           class="bg-purple-700 text-white text-lg sm:text-2xl font-bold px-8 sm:px-12 py-3 sm:py-4 rounded-full shadow-2xl hover:scale-105 transform transition-all duration-300"
         >
@@ -153,7 +146,7 @@
 
     <!-- Footer -->
     <footer class="bg-purple-800 text-white py-6 sm:py-8 text-center mt-12 sm:mt-16">
-      <p class="text-lg sm:text-xl font-bold mb-1 sm:mb-2">© 2025 Sight Word Buddy</p>
+      <p class="text-lg sm:text-xl font-bold mb-1 sm:mb-2">© 2025 TinyTalkers</p>
       <p class="text-sm sm:text-lg">Built with 💜 for young learners everywhere!</p>
     </footer>
   </div>

@@ -60,73 +60,15 @@
         <button
           type="button"
           @click="showExcelInfo = !showExcelInfo"
-          class="text-blue-600 hover:text-blue-800 transition-colors"
+          class="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-md hover:shadow-lg active:scale-95 font-semibold text-sm"
           title="Show Excel format information"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
+          <span>File Format Info</span>
         </button>
       </div>
-
-      <!-- Info Panel -->
-      <transition name="slide-fade">
-        <div v-if="showExcelInfo" class="mb-4 p-4 bg-white rounded-lg border border-blue-200 shadow-sm">
-          <h4 class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-            📋 Excel File Requirements
-          </h4>
-          <ul class="text-sm text-gray-600 space-y-2 ml-4">
-            <li class="flex items-start">
-              <span class="text-blue-500 mr-2">•</span>
-              <span><strong>Column 1: "CVC Word"</strong> - Must contain exactly 3-letter words following Consonant-Vowel-Consonant pattern (e.g., CAT, DOG, PIG, SUN)</span>
-            </li>
-            <li class="flex items-start">
-              <span class="text-purple-500 mr-2">•</span>
-              <span><strong>Column 2: "Category"</strong> - Category name (minimum 2 characters). New categories are automatically created if they don't exist.</span>
-            </li>
-            <li class="flex items-start">
-              <span class="text-green-500 mr-2">•</span>
-              <span><strong>File Format:</strong> .xlsx or .xls file</span>
-            </li>
-            <li class="flex items-start">
-              <span class="text-red-500 mr-2">•</span>
-              <span><strong>Validation Rules:</strong></span>
-            </li>
-            <ul class="ml-6 mt-1 space-y-1 text-xs text-gray-500">
-              <li>✓ Words must be exactly 3 characters long</li>
-              <li>✓ Words must follow CVC pattern (Consonant-Vowel-Consonant)</li>
-              <li>✓ Duplicate words will be skipped (case-insensitive)</li>
-              <li>✓ Category names must be at least 2 characters</li>
-              <li>✓ Categories are matched case-insensitively</li>
-            </ul>
-          </ul>
-          <div class="mt-3 p-3 bg-gray-50 rounded border border-gray-200">
-            <p class="text-xs font-semibold text-gray-700 mb-1">Example Format:</p>
-            <table class="text-xs w-full">
-              <thead class="bg-gray-100">
-                <tr>
-                  <th class="border border-gray-300 px-2 py-1">CVC Word</th>
-                  <th class="border border-gray-300 px-2 py-1">Category</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td class="border border-gray-300 px-2 py-1">CAT</td>
-                  <td class="border border-gray-300 px-2 py-1">Animals</td>
-                </tr>
-                <tr>
-                  <td class="border border-gray-300 px-2 py-1">DOG</td>
-                  <td class="border border-gray-300 px-2 py-1">Animals</td>
-                </tr>
-                <tr>
-                  <td class="border border-gray-300 px-2 py-1">SUN</td>
-                  <td class="border border-gray-300 px-2 py-1">Nature</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </transition>
 
       <!-- File Input -->
       <div class="flex items-center gap-3">
@@ -169,6 +111,153 @@
         </div>
       </div>
     </div>
+
+    <!-- Excel Info Modal -->
+    <transition name="modal-fade">
+      <div
+        v-if="showExcelInfo"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 px-4"
+        @click.self="showExcelInfo = false"
+      >
+        <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full transform transition-all max-h-[90vh] flex flex-col">
+          <!-- Modal Header -->
+          <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white px-6 py-5 rounded-t-2xl flex items-center justify-between sticky top-0 z-10">
+            <div class="flex items-center gap-3">
+              <span class="text-3xl">📋</span>
+              <div>
+                <h3 class="text-xl sm:text-2xl font-bold">Excel File Requirements</h3>
+                <p class="text-blue-100 text-xs sm:text-sm mt-0.5">Format guidelines for bulk upload</p>
+              </div>
+            </div>
+            <button
+              @click="showExcelInfo = false"
+              class="p-2 hover:bg-white/20 rounded-lg transition-all active:scale-95"
+              aria-label="Close modal"
+            >
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Modal Content -->
+          <div class="flex-1 overflow-y-auto p-6">
+            <div class="space-y-4">
+              <!-- Column Requirements -->
+              <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border-2 border-blue-200">
+                <h4 class="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                  <span class="text-xl">📊</span>
+                  <span>Required Columns</span>
+                </h4>
+                <ul class="space-y-3">
+                  <li class="flex items-start gap-3">
+                    <span class="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                    <div>
+                      <p class="font-semibold text-gray-800">Column 1: "CVC Word"</p>
+                      <p class="text-sm text-gray-600 mt-1">Must contain exactly 3-letter words following Consonant-Vowel-Consonant pattern</p>
+                      <p class="text-xs text-blue-600 mt-1">Examples: CAT, DOG, PIG, SUN, RUN</p>
+                    </div>
+                  </li>
+                  <li class="flex items-start gap-3">
+                    <span class="flex-shrink-0 w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                    <div>
+                      <p class="font-semibold text-gray-800">Column 2: "Category"</p>
+                      <p class="text-sm text-gray-600 mt-1">Category name (minimum 2 characters)</p>
+                      <p class="text-xs text-purple-600 mt-1">New categories are automatically created if they don't exist</p>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+
+              <!-- File Format -->
+              <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border-2 border-green-200">
+                <h4 class="font-bold text-gray-800 mb-2 flex items-center gap-2">
+                  <span class="text-xl">📄</span>
+                  <span>File Format</span>
+                </h4>
+                <p class="text-sm text-gray-600">Excel files (.xlsx or .xls)</p>
+              </div>
+
+              <!-- Validation Rules -->
+              <div class="bg-gradient-to-r from-red-50 to-orange-50 p-4 rounded-lg border-2 border-red-200">
+                <h4 class="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                  <span class="text-xl">✓</span>
+                  <span>Validation Rules</span>
+                </h4>
+                <ul class="space-y-2">
+                  <li class="flex items-start gap-2 text-sm text-gray-700">
+                    <span class="text-green-500 font-bold">✓</span>
+                    <span>Words must be exactly 3 characters long</span>
+                  </li>
+                  <li class="flex items-start gap-2 text-sm text-gray-700">
+                    <span class="text-green-500 font-bold">✓</span>
+                    <span>Words must follow CVC pattern (Consonant-Vowel-Consonant)</span>
+                  </li>
+                  <li class="flex items-start gap-2 text-sm text-gray-700">
+                    <span class="text-green-500 font-bold">✓</span>
+                    <span>Duplicate words will be skipped (case-insensitive)</span>
+                  </li>
+                  <li class="flex items-start gap-2 text-sm text-gray-700">
+                    <span class="text-green-500 font-bold">✓</span>
+                    <span>Category names must be at least 2 characters</span>
+                  </li>
+                  <li class="flex items-start gap-2 text-sm text-gray-700">
+                    <span class="text-green-500 font-bold">✓</span>
+                    <span>Categories are matched case-insensitively</span>
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Example Table -->
+              <div class="bg-gradient-to-r from-gray-50 to-slate-50 p-4 rounded-lg border-2 border-gray-300">
+                <h4 class="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                  <span class="text-xl">📝</span>
+                  <span>Example Format</span>
+                </h4>
+                <div class="overflow-x-auto">
+                  <table class="w-full text-sm border-collapse">
+                    <thead>
+                      <tr class="bg-gradient-to-r from-blue-100 to-purple-100">
+                        <th class="border-2 border-gray-300 px-4 py-2 text-left font-bold text-gray-800">CVC Word</th>
+                        <th class="border-2 border-gray-300 px-4 py-2 text-left font-bold text-gray-800">Category</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr class="bg-white hover:bg-blue-50 transition-colors">
+                        <td class="border-2 border-gray-300 px-4 py-2 font-mono font-semibold text-blue-600">CAT</td>
+                        <td class="border-2 border-gray-300 px-4 py-2">Animals</td>
+                      </tr>
+                      <tr class="bg-gray-50 hover:bg-blue-50 transition-colors">
+                        <td class="border-2 border-gray-300 px-4 py-2 font-mono font-semibold text-blue-600">DOG</td>
+                        <td class="border-2 border-gray-300 px-4 py-2">Animals</td>
+                      </tr>
+                      <tr class="bg-white hover:bg-blue-50 transition-colors">
+                        <td class="border-2 border-gray-300 px-4 py-2 font-mono font-semibold text-blue-600">SUN</td>
+                        <td class="border-2 border-gray-300 px-4 py-2">Nature</td>
+                      </tr>
+                      <tr class="bg-gray-50 hover:bg-blue-50 transition-colors">
+                        <td class="border-2 border-gray-300 px-4 py-2 font-mono font-semibold text-blue-600">RUN</td>
+                        <td class="border-2 border-gray-300 px-4 py-2">Actions</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal Footer -->
+          <div class="border-t-2 border-gray-200 px-6 py-4 bg-gray-50 rounded-b-2xl flex justify-end">
+            <button
+              @click="showExcelInfo = false"
+              class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95"
+            >
+              Got It!
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -406,18 +495,24 @@ const clearFile = () => {
 </script>
 
 <style scoped>
-/* Slide fade transition */
-.slide-fade-enter-active {
-  transition: all 0.3s ease-out;
+/* Modal fade transition */
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: all 0.3s ease;
 }
 
-.slide-fade-leave-active {
-  transition: all 0.2s cubic-bezier(1, 0.5, 0.8, 1);
-}
-
-.slide-fade-enter-from,
-.slide-fade-leave-to {
-  transform: translateY(-10px);
+.modal-fade-enter-from,
+.modal-fade-leave-to {
   opacity: 0;
+}
+
+.modal-fade-enter-from > div,
+.modal-fade-leave-to > div {
+  transform: scale(0.95) translateY(-20px);
+}
+
+.modal-fade-enter-to > div,
+.modal-fade-leave-from > div {
+  transform: scale(1) translateY(0);
 }
 </style>

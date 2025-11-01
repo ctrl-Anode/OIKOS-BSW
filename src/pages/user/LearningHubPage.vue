@@ -4,6 +4,81 @@
   >
     <Topbar class="flex-shrink-0 fixed top-0 left-0 w-full z-20" />
 
+    <!-- Music Control Button (Always Visible) -->
+    <button
+      @click.stop="showMusicControls = !showMusicControls"
+      class="fixed bottom-4 right-4 z-30 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white p-4 rounded-full shadow-2xl hover:shadow-xl transition-all duration-200 active:scale-95 flex items-center justify-center"
+      :class="{ 'animate-pulse': isMusicPlaying }"
+    >
+      <span class="text-2xl">{{ isMusicPlaying ? '🎵' : '🎶' }}</span>
+    </button>
+
+    <!-- Background Music Player Overlay (Toggleable) -->
+    <div v-if="showMusicControls" class="fixed inset-0 z-29" @click="showMusicControls = false">
+      <!-- Transparent overlay to catch clicks -->
+    </div>
+
+    <!-- Background Music Player (Toggleable) -->
+    <transition name="slide-up">
+      <div v-if="showMusicControls" class="fixed bottom-20 right-4 z-30 bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-4 border-2 border-purple-300" @click.stop>
+        <div class="flex flex-col gap-3 min-w-[200px]">
+          <div class="flex items-center justify-between gap-3">
+            <span class="text-sm font-bold text-purple-700 flex items-center gap-1">
+              <span class="text-lg">🎵</span>
+              <span>Music Controls</span>
+            </span>
+            <button
+              @click="showMusicControls = false"
+              class="text-gray-500 hover:text-gray-800 transition-colors duration-200 text-xl font-bold"
+            >
+              ✖
+            </button>
+          </div>
+          <button
+            @click="toggleMusic"
+            class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-4 py-2 rounded-lg font-bold shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
+          >
+            <span class="text-lg">{{ isMusicPlaying ? '⏸️' : '▶️' }}</span>
+            <span class="text-sm">{{ isMusicPlaying ? 'Pause' : 'Play' }}</span>
+          </button>
+          
+          <!-- Background Music Volume -->
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-semibold text-gray-600">Background Music</label>
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-gray-600">🔉</span>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                v-model="musicVolume"
+                @input="updateVolume"
+                class="flex-1 h-2 bg-purple-200 rounded-lg appearance-none cursor-pointer slider"
+              />
+              <span class="text-xs font-semibold text-purple-700 min-w-[35px]">{{ musicVolume }}%</span>
+            </div>
+          </div>
+          
+          <!-- Celebration Volume -->
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-semibold text-gray-600">Celebration Sound</label>
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-gray-600">🎉</span>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                v-model="celebrationVolume"
+                @input="updateCelebrationVolume"
+                class="flex-1 h-2 bg-pink-200 rounded-lg appearance-none cursor-pointer slider-celebration"
+              />
+              <span class="text-xs font-semibold text-pink-700 min-w-[35px]">{{ celebrationVolume }}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
+
     <!-- Main Content -->
     <main
       class="flex-1 overflow-y-auto mt-[72px] sm:mt-[80px] flex flex-col items-center px-4 py-6 sm:py-12"
@@ -19,6 +94,26 @@
             TinyTalkers
           </h2>
           <p class="text-gray-600 text-sm sm:text-base">Master CVC words through interactive learning</p>
+          
+          <!-- Chosen Categories Display -->
+          <div class="mt-4 flex items-center justify-center gap-2 flex-wrap">
+            <span class="text-sm font-semibold text-purple-700">Active Filters:</span>
+            <div class="flex items-center gap-2 flex-wrap justify-center">
+              <span 
+                v-for="cat in displayedCategories" 
+                :key="cat"
+                class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 border border-purple-300 shadow-sm"
+              >
+                {{ cat }}
+              </span>
+              <span 
+                v-if="displayedCategories.length === 0"
+                class="text-sm text-gray-500 italic"
+              >
+                No categories selected
+              </span>
+            </div>
+          </div>
         </div>
 
         <!-- Combined LearnCVCView content starts -->
@@ -153,9 +248,18 @@
                 <div class="text-xs text-gray-500 mb-3 bg-purple-50 p-2 rounded-lg border border-purple-200">
                   Select categories to filter the word pool
                 </div>
+                <div class="mb-3">
+                  <input
+                    v-model="searchCategory"
+                    type="text"
+                    placeholder="🔍 Search categories..."
+                    class="border-2 border-purple-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 px-3 py-2 rounded-lg w-full transition-all duration-200"
+                  />
+                </div>
                 <div class="flex-1 overflow-y-auto">
                   <div class="space-y-2">
                     <label 
+                      v-if="!searchCategory"
                       class="flex items-center gap-3 p-3 rounded-lg border-2 transition-all duration-200 cursor-pointer"
                       :class="selectedCategoriesPool.includes('ALL') ? 'bg-purple-100 border-purple-400' : 'bg-white border-gray-200 hover:border-purple-300'"
                     >
@@ -168,7 +272,7 @@
                       <span class="font-semibold text-gray-700">All Categories</span>
                     </label>
                     <label 
-                      v-for="cat in categories" 
+                      v-for="cat in filteredCategories" 
                       :key="cat.id"
                       class="flex items-center gap-3 p-3 rounded-lg border-2 transition-all duration-200 cursor-pointer"
                       :class="selectedCategoriesPool.includes(cat.name) ? 'bg-purple-100 border-purple-400' : 'bg-white border-gray-200 hover:border-purple-300'"
@@ -181,6 +285,11 @@
                       />
                       <span class="font-medium text-gray-700">{{ cat.name }}</span>
                     </label>
+                    <div v-if="filteredCategories.length === 0" class="text-gray-500 text-center py-8 text-sm">
+                      <div class="text-4xl mb-2">🔍</div>
+                      <div>No categories found</div>
+                      <div class="text-xs mt-1">Try a different search</div>
+                    </div>
                   </div>
                 </div>
                 <div class="mt-4 pt-4 border-t-2 border-gray-200">
@@ -260,6 +369,15 @@
               <div class="text-xs text-gray-500 mb-3 bg-slate-50 p-2 rounded-lg border border-slate-200">
                 Showing {{ filteredWords.length }} word{{ filteredWords.length !== 1 ? 's' : '' }} from selected categories
               </div>
+              <!-- Pool search -->
+              <div class="mb-3">
+                <input
+                  v-model="searchPool"
+                  type="text"
+                  placeholder="🔍 Search pool..."
+                  class="border-2 border-slate-200 focus:border-slate-400 focus:ring-2 focus:ring-slate-200 px-3 py-2 rounded-lg w-full transition-all duration-200"
+                />
+              </div>
               <div class="flex-1 overflow-y-auto space-y-2">
                 <div
                   v-for="word in filteredWords"
@@ -302,6 +420,8 @@ const selectedWord = ref(null);
 // Independent filters
 const selectedCategoriesPool = ref(["ALL"]); // default All
 const searchBucket = ref("");
+const searchPool = ref(""); // search for words in pool
+const searchCategory = ref(""); // search for categories in filter
 const selectedCategoryBucket = ref("");
 const showBucket = ref(false);
 const showPool = ref(false);
@@ -311,6 +431,13 @@ const bucketWords = ref([]); // User's personal bucket (live)
 let unsubscribeAuth = null;
 let unsubscribeBucket = null;
 const toast = useToast();
+
+// Background Music
+const bgMusicRef = ref(null);
+const isMusicPlaying = ref(true);
+const musicVolume = ref(5);
+const celebrationVolume = ref(20);
+const showMusicControls = ref(false);
 
 // Swipe detection for teaching screen
 let touchStartX = 0;
@@ -324,8 +451,73 @@ function endTouch(e, word) {
   }
 }
 
+// Background Music Functions
+function initBackgroundMusic() {
+  try {
+    bgMusicRef.value = new Audio('/kids-bg-music.mp3');
+    bgMusicRef.value.loop = true;
+    bgMusicRef.value.volume = musicVolume.value / 100;
+    
+    // Restore music state from localStorage
+    const savedVolume = localStorage.getItem('bgMusicVolume');
+    if (savedVolume) {
+      musicVolume.value = parseInt(savedVolume);
+      bgMusicRef.value.volume = musicVolume.value / 100;
+    }
+    
+    const savedCelebrationVolume = localStorage.getItem('celebrationVolume');
+    if (savedCelebrationVolume) {
+      celebrationVolume.value = parseInt(savedCelebrationVolume);
+    }
+    
+    const savedPlaying = localStorage.getItem('bgMusicPlaying');
+    if (savedPlaying === 'true') {
+      // Auto-play only if user had it playing before
+      bgMusicRef.value.play().catch(err => {
+        console.log('Auto-play prevented:', err);
+        isMusicPlaying.value = false;
+      });
+      isMusicPlaying.value = true;
+    }
+  } catch (error) {
+    console.error('Error initializing background music:', error);
+    toast.warning('Background music file not found');
+  }
+}
+
+function toggleMusic() {
+  if (!bgMusicRef.value) return;
+  
+  if (isMusicPlaying.value) {
+    bgMusicRef.value.pause();
+    isMusicPlaying.value = false;
+  } else {
+    bgMusicRef.value.play().catch(err => {
+      console.error('Error playing music:', err);
+      toast.error('Could not play music');
+    });
+    isMusicPlaying.value = true;
+  }
+  
+  localStorage.setItem('bgMusicPlaying', isMusicPlaying.value.toString());
+}
+
+function updateVolume() {
+  if (bgMusicRef.value) {
+    bgMusicRef.value.volume = musicVolume.value / 100;
+    localStorage.setItem('bgMusicVolume', musicVolume.value.toString());
+  }
+}
+
+function updateCelebrationVolume() {
+  localStorage.setItem('celebrationVolume', celebrationVolume.value.toString());
+}
+
 // Fetch words and categories
 onMounted(async () => {
+  // Initialize background music
+  initBackgroundMusic();
+  
   // Load all words and categories for drawing/filters
   const wordSnap = await getDocs(collection(db, "cvcWords"));
   cvcWords.value = wordSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
@@ -379,6 +571,12 @@ onMounted(async () => {
 onUnmounted(() => {
   if (unsubscribeBucket) unsubscribeBucket();
   if (unsubscribeAuth) unsubscribeAuth();
+  
+  // Clean up background music
+  if (bgMusicRef.value) {
+    bgMusicRef.value.pause();
+    bgMusicRef.value = null;
+  }
 });
 
 // Persist toggle state across route changes
@@ -398,17 +596,92 @@ watch(showCategoryFilter, (val) => {
   } catch (_) {}
 });
 // Persist pool filters
-watch(selectedCategoriesPool, (arr) => {
+watch(selectedCategoriesPool, (arr, oldArr) => {
   try {
-    // Enforce exclusive 'ALL' selection: if 'ALL' with others, reduce to only 'ALL';
     const a = Array.isArray(arr) ? [...arr] : [];
+    const old = Array.isArray(oldArr) ? [...oldArr] : [];
+    
+    // Smart "ALL" handling:
+    // If "ALL" was just added and there are other selections, remove other selections
+    // If another category was just added and "ALL" is present, remove "ALL"
     if (a.includes("ALL") && a.length > 1) {
-      selectedCategoriesPool.value = ["ALL"]; // normalize selection
-      return; // watcher will run again and persist normalized state
+      const allWasJustAdded = !old.includes("ALL");
+      if (allWasJustAdded) {
+        // User just selected "ALL", clear other selections
+        selectedCategoriesPool.value = ["ALL"];
+        return;
+      } else {
+        // User selected a specific category while "ALL" was already selected, remove "ALL"
+        selectedCategoriesPool.value = a.filter(cat => cat !== "ALL");
+        return;
+      }
     }
+    
+    // If nothing selected, default back to "ALL"
+    if (a.length === 0) {
+      selectedCategoriesPool.value = ["ALL"];
+      return;
+    }
+    
     localStorage.setItem("learnCvc_selectedCategoriesPool", JSON.stringify(a));
   } catch (_) {}
 });
+
+// Play celebration sound
+function playCelebration() {
+  // Pause background music if playing
+  const wasMusicPlaying = isMusicPlaying.value;
+  if (wasMusicPlaying && bgMusicRef.value) {
+    bgMusicRef.value.pause();
+  }
+  
+  try {
+    const celebrationAudio = new Audio('/celebration.mp3');
+    celebrationAudio.volume = celebrationVolume.value / 100; // Use user-defined volume
+    
+    // Resume background music after celebration finishes
+    celebrationAudio.addEventListener('ended', () => {
+      if (wasMusicPlaying && bgMusicRef.value) {
+        setTimeout(() => {
+          bgMusicRef.value.play().catch(err => {
+            console.log('Could not resume music:', err);
+          });
+        }, 200);
+      }
+    });
+    
+    // Also handle error case
+    celebrationAudio.addEventListener('error', () => {
+      console.log('Celebration audio not found');
+      // Resume music even if celebration fails
+      if (wasMusicPlaying && bgMusicRef.value) {
+        setTimeout(() => {
+          bgMusicRef.value.play().catch(err => {
+            console.log('Could not resume music:', err);
+          });
+        }, 200);
+      }
+    });
+    
+    celebrationAudio.play().catch(err => {
+      console.log('Could not play celebration:', err);
+      // Resume music if celebration fails to play
+      if (wasMusicPlaying && bgMusicRef.value) {
+        bgMusicRef.value.play().catch(err => {
+          console.log('Could not resume music:', err);
+        });
+      }
+    });
+  } catch (error) {
+    console.error('Error with celebration audio:', error);
+    // Resume music on error
+    if (wasMusicPlaying && bgMusicRef.value) {
+      bgMusicRef.value.play().catch(err => {
+        console.log('Could not resume music:', err);
+      });
+    }
+  }
+}
 
 // Draw random word
 async function drawWord() {
@@ -424,6 +697,7 @@ async function drawWord() {
     } else {
       try {
         await addWordToBucket(userId.value, drawn);
+        playCelebration(); // Play celebration sound
         toast.success("Added to your bucket");
       } catch (e) {
         console.error("addWordToBucket error:", e);
@@ -439,6 +713,9 @@ async function drawWord() {
 // Select word from bucket
 function selectWord(word) {
   selectedWord.value = word;
+  // Auto-close sidebars when word is selected
+  showBucket.value = false;
+  showPool.value = false;
 }
 
 // Removing words from the bucket is disabled in user view
@@ -452,11 +729,33 @@ const filteredWords = computed(() => {
   if (!treatAll) {
     words = words.filter((w) => cats.includes(w.category));
   }
+  // Search filter
+  if (searchPool.value) {
+    words = words.filter((w) => w.word.toLowerCase().includes(searchPool.value.toLowerCase()));
+  }
   return words;
 });
 
 // Pool size badge
 const poolCount = computed(() => filteredWords.value.length);
+
+// Display chosen categories
+const displayedCategories = computed(() => {
+  const cats = selectedCategoriesPool.value || [];
+  if (cats.length === 0 || cats.includes("ALL")) {
+    return ["All Categories"];
+  }
+  return cats;
+});
+
+// Filtered categories for category filter sidebar
+const filteredCategories = computed(() => {
+  if (!searchCategory.value) return categories.value;
+  const search = searchCategory.value.toLowerCase();
+  return categories.value.filter((cat) => 
+    cat.name.toLowerCase().includes(search)
+  );
+});
 
 // Filtered user's bucket for sidebar listing
 const filteredBucketWords = computed(() => {
@@ -473,12 +772,29 @@ const filteredBucketWords = computed(() => {
 // Play phonetic audio for letter
 function playPhonetic(letter) {
   if (!letter) return;
+  
+  // Pause background music if playing
+  const wasMusicPlaying = isMusicPlaying.value;
+  if (wasMusicPlaying && bgMusicRef.value) {
+    bgMusicRef.value.pause();
+  }
+  
   const audio = new Audio(
     new URL(
       `../../assets/phonetics/${letter.toLowerCase()}.mp3`,
       import.meta.url
     ).href
   );
+  
+  // Resume background music after phonetic finishes
+  audio.addEventListener('ended', () => {
+    if (wasMusicPlaying && bgMusicRef.value) {
+      bgMusicRef.value.play().catch(err => {
+        console.log('Could not resume music:', err);
+      });
+    }
+  });
+  
   audio.play();
 }
 
@@ -486,9 +802,28 @@ function playPhonetic(letter) {
 function speakWord(word) {
   if (!word) return;
   if ("speechSynthesis" in window) {
+    // Pause background music if playing
+    const wasMusicPlaying = isMusicPlaying.value;
+    if (wasMusicPlaying && bgMusicRef.value) {
+      bgMusicRef.value.pause();
+    }
+    
     window.speechSynthesis.cancel();
     const utter = new window.SpeechSynthesisUtterance(word);
     utter.rate = 0.7;
+    
+    // Resume background music after speech finishes
+    utter.addEventListener('end', () => {
+      if (wasMusicPlaying && bgMusicRef.value) {
+        // Add a small delay before resuming to make it feel more natural
+        setTimeout(() => {
+          bgMusicRef.value.play().catch(err => {
+            console.log('Could not resume music:', err);
+          });
+        }, 300);
+      }
+    });
+    
     window.speechSynthesis.speak(utter);
   }
 }
@@ -720,5 +1055,97 @@ main {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+/* Custom slider styling */
+.slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(to right, #a855f7, #ec4899);
+  cursor: pointer;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(to right, #a855f7, #ec4899);
+  cursor: pointer;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  border: none;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+}
+
+.slider::-moz-range-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Celebration slider styling */
+.slider-celebration::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(to right, #ec4899, #f97316);
+  cursor: pointer;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.slider-celebration::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(to right, #ec4899, #f97316);
+  cursor: pointer;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  border: none;
+}
+
+.slider-celebration::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+}
+
+.slider-celebration::-moz-range-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Music controls slide-up animation */
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: transform 250ms ease, opacity 250ms ease;
+}
+.slide-up-enter-from,
+.slide-up-leave-to {
+  transform: translateY(20px);
+  opacity: 0;
+}
+.slide-up-enter-to,
+.slide-up-leave-from {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Pulse animation for music button */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 </style>

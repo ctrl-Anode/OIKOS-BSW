@@ -113,55 +113,32 @@
             <div>
               <button
                 @click="toggleForm"
-                :class="[
-                  'w-full px-4 sm:px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-95',
-                  showForm
-                    ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white'
-                    : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white'
-                ]"
+                class="w-full px-4 sm:px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-95 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white"
               >
-                <span class="text-lg">{{ showForm ? '✕' : '➕' }}</span>
-                <span class="text-sm sm:text-base">{{ showForm ? 'Close Form' : 'Add New CVC Word' }}</span>
+                <span class="text-lg">➕</span>
+                <span class="text-sm sm:text-base">Add New CVC Word</span>
               </button>
             </div>
 
-            <!-- Add Category Section -->
+            <!-- Category Management Buttons -->
             <div class="flex gap-2">
-              <input
-                v-model="newCategory"
-                type="text"
-                placeholder="Enter new category..."
-                class="flex-1 px-3 sm:px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm sm:text-base"
-              />
               <button
-                @click="addCategory"
-                :disabled="!newCategory.trim()"
-                :class="[
-                  'px-4 sm:px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center gap-2 shadow-md active:scale-95 whitespace-nowrap',
-                  newCategory.trim()
-                    ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white hover:shadow-lg'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                ]"
+                @click="showAddCategoryModal = true"
+                class="flex-1 px-4 sm:px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95 flex items-center justify-center gap-2"
               >
                 <span class="text-lg">🏷️</span>
-                <span class="hidden sm:inline text-sm sm:text-base">Add Category</span>
+                <span class="text-sm sm:text-base">Add Category</span>
               </button>
               <button
                 @click="toggleCategoryModal"
-                class="px-4 sm:px-6 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95"
+                class="px-4 sm:px-6 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95 flex items-center justify-center gap-2"
               >
-                🛠️
+                <span class="text-lg">🛠️</span>
+                <span class="text-xs sm:text-sm hidden sm:inline">Manage</span>
               </button>
             </div>
           </div>
         </div>
-
-        <!-- Form Section -->
-        <transition name="slide-down">
-          <div v-if="showForm" class="px-4 sm:px-8 py-4 sm:py-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-b border-blue-200">
-            <CVCForm :categories="categories" @saved="fetchWords" @cancel="toggleForm" />
-          </div>
-        </transition>
 
         <!-- Words List Section -->
         <div class="px-4 sm:px-8 py-4 sm:py-6">
@@ -235,6 +212,140 @@
       </div>
     </transition>
 
+    <!-- CVC Form Modal -->
+    <transition name="modal-fade">
+      <div
+        v-if="showForm"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 px-4"
+        @click.self="toggleForm"
+      >
+        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full transform transition-all max-h-[90vh] overflow-y-auto">
+          <!-- Modal Header -->
+          <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white px-6 py-5 rounded-t-2xl flex items-center justify-between sticky top-0 z-10">
+            <div class="flex items-center gap-3">
+              <span class="text-3xl">➕</span>
+              <div>
+                <h3 class="text-xl sm:text-2xl font-bold">Add New CVC Word</h3>
+                <p class="text-blue-100 text-xs sm:text-sm mt-0.5">Create a new word with category</p>
+              </div>
+            </div>
+            <button
+              @click="toggleForm"
+              class="p-2 hover:bg-white/20 rounded-lg transition-all active:scale-95"
+              aria-label="Close modal"
+            >
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Modal Content -->
+          <div class="p-4 sm:p-6">
+            <CVCForm :categories="categories" @saved="handleFormSaved" @cancel="toggleForm" />
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- Add Category Modal -->
+    <transition name="modal-fade">
+      <div
+        v-if="showAddCategoryModal"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 px-4"
+        @click.self="closeAddCategoryModal"
+      >
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full transform transition-all">
+          <!-- Modal Header -->
+          <div class="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 text-white px-6 py-5 rounded-t-2xl flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="text-3xl">🏷️</span>
+              <div>
+                <h3 class="text-xl sm:text-2xl font-bold">Add New Category</h3>
+                <p class="text-green-100 text-xs sm:text-sm mt-0.5">Create a new word category</p>
+              </div>
+            </div>
+            <button
+              @click="closeAddCategoryModal"
+              class="p-2 hover:bg-white/20 rounded-lg transition-all active:scale-95"
+              aria-label="Close modal"
+            >
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Modal Content -->
+          <div class="p-6">
+            <form @submit.prevent="addCategory">
+              <div class="mb-6">
+                <label class="block text-sm font-bold text-gray-700 mb-2">
+                  Category Name
+                </label>
+                <input
+                  v-model="newCategory"
+                  type="text"
+                  placeholder="Enter category name (min. 2 characters)..."
+                  class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all text-base"
+                  autofocus
+                />
+                <p class="text-xs text-gray-500 mt-2">
+                  Examples: Animals, Food, Nature, Colors, Actions
+                </p>
+              </div>
+
+              <!-- Validation Info -->
+              <div class="mb-6 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                <h4 class="font-semibold text-blue-800 mb-2 flex items-center gap-2">
+                  <span>ℹ️</span>
+                  <span>Requirements</span>
+                </h4>
+                <ul class="space-y-1 text-sm text-blue-700">
+                  <li class="flex items-start gap-2">
+                    <span class="text-green-500">✓</span>
+                    <span>Minimum 2 characters</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-green-500">✓</span>
+                    <span>Must be unique (case-insensitive)</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-green-500">✓</span>
+                    <span>Descriptive and clear</span>
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="flex gap-3">
+                <button
+                  type="button"
+                  @click="closeAddCategoryModal"
+                  class="flex-1 px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold rounded-xl transition-all active:scale-95"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  :disabled="!newCategory.trim() || newCategory.trim().length < 2"
+                  :class="[
+                    'flex-1 px-6 py-3 font-bold rounded-xl transition-all shadow-md flex items-center justify-center gap-2',
+                    newCategory.trim() && newCategory.trim().length >= 2
+                      ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white hover:shadow-lg active:scale-95'
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  ]"
+                >
+                  <span class="text-lg">✓</span>
+                  <span>Add Category</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </transition>
+
     <!-- Category Management Modal -->
     <transition name="modal-fade">
       <div
@@ -277,52 +388,52 @@
               <div 
                 v-for="(category, index) in categories" 
                 :key="category.id" 
-                class="bg-gradient-to-r from-gray-50 to-slate-50 border-2 border-gray-200 rounded-xl p-4 hover:shadow-md transition-all duration-200"
+                class="bg-gradient-to-r from-gray-50 to-slate-50 border-2 border-gray-200 rounded-xl p-4 hover:shadow-md transition-all duration-200 relative"
               >
-                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                  <!-- Category Number Badge -->
-                  <div class="flex items-center gap-3 flex-1 w-full sm:w-auto">
-                    <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0">
-                      {{ index + 1 }}
-                    </div>
-                    
-                    <!-- Category Input -->
-                    <input
-                      v-model="category.name"
-                      type="text"
-                      placeholder="Category name..."
-                      :disabled="editingCategoryId !== category.id"
-                      :class="[
-                        'flex-1 px-4 py-2.5 border-2 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm sm:text-base font-medium',
-                        editingCategoryId === category.id ? 'border-gray-300 bg-white' : 'border-gray-200 bg-gray-100 text-gray-700'
-                      ]"
-                      @keyup.enter="editingCategoryId === category.id ? saveCategory(category) : null"
-                    />
-                  </div>
+                <!-- 3-Dot Menu Button (Top Right) -->
+                <button
+                  v-if="editingCategoryId !== category.id"
+                  @click="startEditing(category.id)"
+                  class="absolute top-3 right-3 p-2 hover:bg-gray-200 rounded-lg transition-all active:scale-95 group"
+                  aria-label="Edit category"
+                >
+                  <svg class="w-5 h-5 text-gray-600 group-hover:text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                    <circle cx="12" cy="5" r="2"/>
+                    <circle cx="12" cy="12" r="2"/>
+                    <circle cx="12" cy="19" r="2"/>
+                  </svg>
+                </button>
 
-                  <!-- Action Button -->
-                  <div class="w-full sm:w-auto">
-                    <button
-                      v-if="editingCategoryId === category.id"
-                      @click="saveCategory(category)"
-                      class="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg active:scale-95 flex items-center justify-center gap-2"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span>Save</span>
-                    </button>
-                    <button
-                      v-else
-                      @click="startEditing(category.id)"
-                      class="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg active:scale-95 flex items-center justify-center gap-2"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                      <span>Edit</span>
-                    </button>
+                <!-- Save Button (Top Right when editing) -->
+                <button
+                  v-if="editingCategoryId === category.id"
+                  @click="saveCategory(category)"
+                  class="absolute top-3 right-3 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg active:scale-95 flex items-center gap-2"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Save</span>
+                </button>
+
+                <div class="flex items-center gap-3 pr-12">
+                  <!-- Category Number Badge -->
+                  <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0">
+                    {{ index + 1 }}
                   </div>
+                  
+                  <!-- Category Input -->
+                  <input
+                    v-model="category.name"
+                    type="text"
+                    placeholder="Category name..."
+                    :disabled="editingCategoryId !== category.id"
+                    :class="[
+                      'flex-1 px-4 py-2.5 border-2 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm sm:text-base font-medium',
+                      editingCategoryId === category.id ? 'border-gray-300 bg-white' : 'border-gray-200 bg-gray-100 text-gray-700'
+                    ]"
+                    @keyup.enter="editingCategoryId === category.id ? saveCategory(category) : null"
+                  />
                 </div>
 
                 <!-- Delete Button (appears when editing) -->
@@ -416,6 +527,7 @@ export default {
     const showLogoutConfirm = ref(false);
     const isAdminDropdownOpen = ref(false);
     const showCategoryModal = ref(false);
+    const showAddCategoryModal = ref(false);
     const categoryToDelete = ref(null);
     const editingCategoryId = ref(null);
 
@@ -485,6 +597,7 @@ export default {
         });
         newCategory.value = '';
         await fetchCategories();
+        showAddCategoryModal.value = false;
         toast.success('Category added successfully!');
       } catch (error) {
         console.error('Error adding category:', error);
@@ -492,8 +605,18 @@ export default {
       }
     };
 
+    const closeAddCategoryModal = () => {
+      showAddCategoryModal.value = false;
+      newCategory.value = '';
+    };
+
     const toggleForm = () => {
       showForm.value = !showForm.value;
+    };
+
+    const handleFormSaved = () => {
+      fetchWords();
+      toggleForm();
     };
 
     const confirmLogout = () => {
@@ -604,13 +727,16 @@ export default {
       fetchCategories,
       addCategory,
       toggleForm,
+      handleFormSaved,
       confirmLogout,
       logout,
       isAdminDropdownOpen,
       toggleAdminDropdown,
       closeAdminDropdown,
       showCategoryModal,
+      showAddCategoryModal,
       toggleCategoryModal,
+      closeAddCategoryModal,
       updateCategory,
       confirmDeleteCategory,
       cancelDeleteCategory,
