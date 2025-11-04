@@ -51,3 +51,27 @@ Main.js
 index.html
 package-lock.json
 package.json
+
+
+modified   src/pages/auth/LoginPage.vue
+11.04.2025
+
+login logic to include hardcoded admin access
+login function in LoginPage.vue:
+
+async function login() {
+  error.value = ''
+  loading.value = true
+
+  // Check for hardcoded admin login
+  if (identifier.value === 'admin' && password.value === 'admin') {
+    router.push('/admin')
+    loading.value = false
+    return
+  }
+
+  // ...existing login logic...
+}
+
+This will immediately redirect to the admin panel if both fields are "admin".
+No Firebase authentication will be performed for this case.
