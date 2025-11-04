@@ -116,10 +116,10 @@
     <transition name="modal-fade">
       <div
         v-if="showExcelInfo"
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 px-4"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 px-4 overflow-hidden"
         @click.self="showExcelInfo = false"
       >
-        <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full transform transition-all max-h-[90vh] flex flex-col">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full transform transition-all max-h-[90vh] flex flex-col overflow-hidden">
           <!-- Modal Header -->
           <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white px-6 py-5 rounded-t-2xl flex items-center justify-between sticky top-0 z-10">
             <div class="flex items-center gap-3">
@@ -142,105 +142,194 @@
 
           <!-- Modal Content -->
           <div class="flex-1 overflow-y-auto p-6">
-            <div class="space-y-4">
+            <div class="space-y-5">
+              <!-- Step-by-Step Guide Header -->
+              <div class="bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 p-5 rounded-xl shadow-lg text-white">
+                <h3 class="text-lg font-bold mb-2 flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Quick Start Guide
+                </h3>
+                <p class="text-sm text-white/90">Follow these steps to upload your CVC words successfully</p>
+              </div>
+
               <!-- Column Requirements -->
-              <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border-2 border-blue-200">
-                <h4 class="font-bold text-gray-800 mb-3 flex items-center gap-2">
-                  <span class="text-xl">📊</span>
-                  <span>Required Columns</span>
-                </h4>
-                <ul class="space-y-3">
-                  <li class="flex items-start gap-3">
-                    <span class="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
-                    <div>
-                      <p class="font-semibold text-gray-800">Column 1: "CVC Word"</p>
-                      <p class="text-sm text-gray-600 mt-1">Must contain exactly 3-letter words following Consonant-Vowel-Consonant pattern</p>
-                      <p class="text-xs text-blue-600 mt-1">Examples: CAT, DOG, PIG, SUN, RUN</p>
-                    </div>
-                  </li>
-                  <li class="flex items-start gap-3">
-                    <span class="flex-shrink-0 w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
-                    <div>
-                      <p class="font-semibold text-gray-800">Column 2: "Category"</p>
-                      <p class="text-sm text-gray-600 mt-1">Category name (minimum 2 characters)</p>
-                      <p class="text-xs text-purple-600 mt-1">New categories are automatically created if they don't exist</p>
-                    </div>
-                  </li>
-                </ul>
+              <div class="bg-white rounded-xl shadow-lg overflow-hidden border-2 border-blue-200 hover:border-blue-400 transition-all">
+                <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-5 py-3">
+                  <h4 class="font-bold text-white flex items-center gap-2">
+                    <span class="text-2xl">📊</span>
+                    <span>Step 1: Required Columns</span>
+                  </h4>
+                </div>
+                <div class="p-5">
+                  <ul class="space-y-4">
+                    <li class="flex items-start gap-4 p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                      <span class="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-md">1</span>
+                      <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-2">
+                          <p class="font-bold text-gray-800 text-lg">Column 1: "CVC Word"</p>
+                          <span class="px-2 py-1 bg-blue-500 text-white text-xs font-bold rounded-full">Required</span>
+                        </div>
+                        <p class="text-sm text-gray-700 mb-2">Must contain exactly 3-letter words following Consonant-Vowel-Consonant pattern</p>
+                        <div class="flex flex-wrap gap-2 mt-2">
+                          <span class="px-3 py-1 bg-white border-2 border-blue-300 text-blue-700 text-xs font-mono font-bold rounded-lg shadow-sm">CAT</span>
+                          <span class="px-3 py-1 bg-white border-2 border-blue-300 text-blue-700 text-xs font-mono font-bold rounded-lg shadow-sm">DOG</span>
+                          <span class="px-3 py-1 bg-white border-2 border-blue-300 text-blue-700 text-xs font-mono font-bold rounded-lg shadow-sm">PIG</span>
+                          <span class="px-3 py-1 bg-white border-2 border-blue-300 text-blue-700 text-xs font-mono font-bold rounded-lg shadow-sm">SUN</span>
+                          <span class="px-3 py-1 bg-white border-2 border-blue-300 text-blue-700 text-xs font-mono font-bold rounded-lg shadow-sm">RUN</span>
+                        </div>
+                      </div>
+                    </li>
+                    <li class="flex items-start gap-4 p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+                      <span class="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-md">2</span>
+                      <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-2">
+                          <p class="font-bold text-gray-800 text-lg">Column 2: "Category"</p>
+                          <span class="px-2 py-1 bg-purple-500 text-white text-xs font-bold rounded-full">Required</span>
+                        </div>
+                        <p class="text-sm text-gray-700 mb-2">Category name (minimum 2 characters)</p>
+                        <div class="flex items-center gap-2 p-3 bg-purple-100 rounded-lg border-2 border-purple-300 mt-2">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <p class="text-xs text-purple-800 font-medium">💡 New categories are automatically created if they don't exist</p>
+                        </div>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
               </div>
 
               <!-- File Format -->
-              <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border-2 border-green-200">
-                <h4 class="font-bold text-gray-800 mb-2 flex items-center gap-2">
-                  <span class="text-xl">📄</span>
-                  <span>File Format</span>
-                </h4>
-                <p class="text-sm text-gray-600">Excel files (.xlsx or .xls)</p>
+              <div class="bg-white rounded-xl shadow-lg overflow-hidden border-2 border-green-200 hover:border-green-400 transition-all">
+                <div class="bg-gradient-to-r from-green-500 to-emerald-600 px-5 py-3">
+                  <h4 class="font-bold text-white flex items-center gap-2">
+                    <span class="text-2xl">📄</span>
+                    <span>Step 2: File Format</span>
+                  </h4>
+                </div>
+                <div class="p-5">
+                  <div class="flex items-center gap-3 p-4 bg-green-50 rounded-lg">
+                    <div class="flex-shrink-0 w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p class="font-bold text-gray-800 text-lg mb-1">Supported File Types</p>
+                      <div class="flex gap-2">
+                        <span class="px-3 py-1 bg-green-600 text-white text-sm font-bold rounded-lg">.xlsx</span>
+                        <span class="px-3 py-1 bg-green-600 text-white text-sm font-bold rounded-lg">.xls</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <!-- Validation Rules -->
-              <div class="bg-gradient-to-r from-red-50 to-orange-50 p-4 rounded-lg border-2 border-red-200">
-                <h4 class="font-bold text-gray-800 mb-3 flex items-center gap-2">
-                  <span class="text-xl">✓</span>
-                  <span>Validation Rules</span>
-                </h4>
-                <ul class="space-y-2">
-                  <li class="flex items-start gap-2 text-sm text-gray-700">
-                    <span class="text-green-500 font-bold">✓</span>
-                    <span>Words must be exactly 3 characters long</span>
-                  </li>
-                  <li class="flex items-start gap-2 text-sm text-gray-700">
-                    <span class="text-green-500 font-bold">✓</span>
-                    <span>Words must follow CVC pattern (Consonant-Vowel-Consonant)</span>
-                  </li>
-                  <li class="flex items-start gap-2 text-sm text-gray-700">
-                    <span class="text-green-500 font-bold">✓</span>
-                    <span>Duplicate words will be skipped (case-insensitive)</span>
-                  </li>
-                  <li class="flex items-start gap-2 text-sm text-gray-700">
-                    <span class="text-green-500 font-bold">✓</span>
-                    <span>Category names must be at least 2 characters</span>
-                  </li>
-                  <li class="flex items-start gap-2 text-sm text-gray-700">
-                    <span class="text-green-500 font-bold">✓</span>
-                    <span>Categories are matched case-insensitively</span>
-                  </li>
-                </ul>
+              <div class="bg-white rounded-xl shadow-lg overflow-hidden border-2 border-orange-200 hover:border-orange-400 transition-all">
+                <div class="bg-gradient-to-r from-orange-500 to-red-600 px-5 py-3">
+                  <h4 class="font-bold text-white flex items-center gap-2">
+                    <span class="text-2xl">✓</span>
+                    <span>Step 3: Validation Rules</span>
+                  </h4>
+                </div>
+                <div class="p-5">
+                  <ul class="space-y-3">
+                    <li class="flex items-start gap-3 p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border-l-4 border-green-500 hover:shadow-md transition-all">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span class="text-sm text-gray-800 font-medium">Words must be exactly 3 characters long</span>
+                    </li>
+                    <li class="flex items-start gap-3 p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border-l-4 border-green-500 hover:shadow-md transition-all">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span class="text-sm text-gray-800 font-medium">Words must follow CVC pattern (Consonant-Vowel-Consonant)</span>
+                    </li>
+                    <li class="flex items-start gap-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-l-4 border-blue-500 hover:shadow-md transition-all">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span class="text-sm text-gray-800 font-medium">Duplicate words will be skipped (case-insensitive)</span>
+                    </li>
+                    <li class="flex items-start gap-3 p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border-l-4 border-purple-500 hover:shadow-md transition-all">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span class="text-sm text-gray-800 font-medium">Category names must be at least 2 characters</span>
+                    </li>
+                    <li class="flex items-start gap-3 p-3 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border-l-4 border-yellow-500 hover:shadow-md transition-all">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span class="text-sm text-gray-800 font-medium">Categories are matched case-insensitively</span>
+                    </li>
+                  </ul>
+                </div>
               </div>
 
               <!-- Example Table -->
-              <div class="bg-gradient-to-r from-gray-50 to-slate-50 p-4 rounded-lg border-2 border-gray-300">
-                <h4 class="font-bold text-gray-800 mb-3 flex items-center gap-2">
-                  <span class="text-xl">📝</span>
-                  <span>Example Format</span>
-                </h4>
-                <div class="overflow-x-auto">
-                  <table class="w-full text-sm border-collapse">
-                    <thead>
-                      <tr class="bg-gradient-to-r from-blue-100 to-purple-100">
-                        <th class="border-2 border-gray-300 px-4 py-2 text-left font-bold text-gray-800">CVC Word</th>
-                        <th class="border-2 border-gray-300 px-4 py-2 text-left font-bold text-gray-800">Category</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr class="bg-white hover:bg-blue-50 transition-colors">
-                        <td class="border-2 border-gray-300 px-4 py-2 font-mono font-semibold text-blue-600">CAT</td>
-                        <td class="border-2 border-gray-300 px-4 py-2">Animals</td>
-                      </tr>
-                      <tr class="bg-gray-50 hover:bg-blue-50 transition-colors">
-                        <td class="border-2 border-gray-300 px-4 py-2 font-mono font-semibold text-blue-600">DOG</td>
-                        <td class="border-2 border-gray-300 px-4 py-2">Animals</td>
-                      </tr>
-                      <tr class="bg-white hover:bg-blue-50 transition-colors">
-                        <td class="border-2 border-gray-300 px-4 py-2 font-mono font-semibold text-blue-600">SUN</td>
-                        <td class="border-2 border-gray-300 px-4 py-2">Nature</td>
-                      </tr>
-                      <tr class="bg-gray-50 hover:bg-blue-50 transition-colors">
-                        <td class="border-2 border-gray-300 px-4 py-2 font-mono font-semibold text-blue-600">RUN</td>
-                        <td class="border-2 border-gray-300 px-4 py-2">Actions</td>
-                      </tr>
-                    </tbody>
-                  </table>
+              <div class="bg-white rounded-xl shadow-lg overflow-hidden border-2 border-gray-300 hover:border-gray-400 transition-all">
+                <div class="bg-gradient-to-r from-gray-600 to-slate-700 px-5 py-3">
+                  <h4 class="font-bold text-white flex items-center gap-2">
+                    <span class="text-2xl">📝</span>
+                    <span>Step 4: Example Format</span>
+                  </h4>
+                </div>
+                <div class="p-5">
+                  <div class="bg-gradient-to-r from-gray-50 to-slate-50 p-4 rounded-lg mb-3">
+                    <p class="text-sm text-gray-700 flex items-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span class="font-medium">Your Excel file should look like this:</span>
+                    </p>
+                  </div>
+                  <div class="overflow-x-auto rounded-lg shadow-md border-2 border-gray-200">
+                    <table class="w-full text-sm border-collapse">
+                      <thead>
+                        <tr class="bg-gradient-to-r from-blue-500 to-purple-600">
+                          <th class="border-2 border-gray-400 px-6 py-3 text-left font-bold text-white">
+                            <div class="flex items-center gap-2">
+                              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                              </svg>
+                              CVC Word
+                            </div>
+                          </th>
+                          <th class="border-2 border-gray-400 px-6 py-3 text-left font-bold text-white">
+                            <div class="flex items-center gap-2">
+                              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                              </svg>
+                              Category
+                            </div>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr class="bg-white hover:bg-blue-50 transition-colors">
+                          <td class="border-2 border-gray-300 px-6 py-3 font-mono font-bold text-blue-600 text-lg">CAT</td>
+                          <td class="border-2 border-gray-300 px-6 py-3 text-gray-700">Animals</td>
+                        </tr>
+                        <tr class="bg-gray-50 hover:bg-blue-50 transition-colors">
+                          <td class="border-2 border-gray-300 px-6 py-3 font-mono font-bold text-blue-600 text-lg">DOG</td>
+                          <td class="border-2 border-gray-300 px-6 py-3 text-gray-700">Animals</td>
+                        </tr>
+                        <tr class="bg-white hover:bg-blue-50 transition-colors">
+                          <td class="border-2 border-gray-300 px-6 py-3 font-mono font-bold text-blue-600 text-lg">SUN</td>
+                          <td class="border-2 border-gray-300 px-6 py-3 text-gray-700">Nature</td>
+                        </tr>
+                        <tr class="bg-gray-50 hover:bg-blue-50 transition-colors">
+                          <td class="border-2 border-gray-300 px-6 py-3 font-mono font-bold text-blue-600 text-lg">RUN</td>
+                          <td class="border-2 border-gray-300 px-6 py-3 text-gray-700">Actions</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             </div>

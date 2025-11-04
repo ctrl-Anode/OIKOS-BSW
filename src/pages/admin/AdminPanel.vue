@@ -105,7 +105,39 @@
           </h2>
           <p class="text-gray-600 text-xs sm:text-sm mt-1">Manage and organize CVC words and categories</p>
         </div>
-
+<!-- Stats Footer -->
+      <div class="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 p-4 sm:p-6 border-l-4 border-blue-500">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-600 text-xs sm:text-sm font-semibold">Total Words</p>
+              <p class="text-2xl sm:text-3xl font-bold text-blue-600 mt-1 sm:mt-2">{{ words.length }}</p>
+            </div>
+            <div class="text-3xl sm:text-4xl opacity-20">📖</div>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 p-4 sm:p-6 border-l-4 border-purple-500">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-600 text-xs sm:text-sm font-semibold">Total Categories</p>
+              <p class="text-2xl sm:text-3xl font-bold text-purple-600 mt-1 sm:mt-2">{{ categories.length }}</p>
+            </div>
+            <div class="text-3xl sm:text-4xl opacity-20">🏷️</div>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 p-4 sm:p-6 border-l-4 border-green-500 sm:col-span-2 lg:col-span-1">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-600 text-xs sm:text-sm font-semibold">Status</p>
+              <p class="text-lg sm:text-xl font-semibold text-green-600 mt-1 sm:mt-2 flex items-center gap-2">
+                <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                Active
+              </p>
+            </div>
+            <div class="text-3xl sm:text-4xl opacity-20">✅</div>
+          </div>
+        </div>
+      </div>
         <!-- Controls Section -->
         <div class="px-4 sm:px-8 py-4 sm:py-6 border-b border-gray-200 bg-gradient-to-br from-gray-50 to-slate-50">
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
@@ -143,40 +175,6 @@
         <!-- Words List Section -->
         <div class="px-4 sm:px-8 py-4 sm:py-6">
           <CVCList :words="words" @updated="fetchWords" />
-        </div>
-      </div>
-
-      <!-- Stats Footer -->
-      <div class="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-        <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 p-4 sm:p-6 border-l-4 border-blue-500">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-gray-600 text-xs sm:text-sm font-semibold">Total Words</p>
-              <p class="text-2xl sm:text-3xl font-bold text-blue-600 mt-1 sm:mt-2">{{ words.length }}</p>
-            </div>
-            <div class="text-3xl sm:text-4xl opacity-20">📖</div>
-          </div>
-        </div>
-        <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 p-4 sm:p-6 border-l-4 border-purple-500">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-gray-600 text-xs sm:text-sm font-semibold">Total Categories</p>
-              <p class="text-2xl sm:text-3xl font-bold text-purple-600 mt-1 sm:mt-2">{{ categories.length }}</p>
-            </div>
-            <div class="text-3xl sm:text-4xl opacity-20">🏷️</div>
-          </div>
-        </div>
-        <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 p-4 sm:p-6 border-l-4 border-green-500 sm:col-span-2 lg:col-span-1">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-gray-600 text-xs sm:text-sm font-semibold">Status</p>
-              <p class="text-lg sm:text-xl font-semibold text-green-600 mt-1 sm:mt-2 flex items-center gap-2">
-                <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                Active
-              </p>
-            </div>
-            <div class="text-3xl sm:text-4xl opacity-20">✅</div>
-          </div>
         </div>
       </div>
     </main>
@@ -388,68 +386,84 @@
               <div 
                 v-for="(category, index) in categories" 
                 :key="category.id" 
-                class="bg-gradient-to-r from-gray-50 to-slate-50 border-2 border-gray-200 rounded-xl p-4 hover:shadow-md transition-all duration-200 relative"
+                class="bg-white rounded-2xl shadow-lg p-6 relative transition-all duration-300 hover:shadow-xl"
+                :class="{ 'scale-105': editingCategoryId !== category.id }"
               >
-                <!-- 3-Dot Menu Button (Top Right) -->
-                <button
-                  v-if="editingCategoryId !== category.id"
-                  @click="startEditing(category.id)"
-                  class="absolute top-3 right-3 p-2 hover:bg-gray-200 rounded-lg transition-all active:scale-95 group"
-                  aria-label="Edit category"
-                >
-                  <svg class="w-5 h-5 text-gray-600 group-hover:text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                    <circle cx="12" cy="5" r="2"/>
-                    <circle cx="12" cy="12" r="2"/>
-                    <circle cx="12" cy="19" r="2"/>
-                  </svg>
-                </button>
-
-                <!-- Save Button (Top Right when editing) -->
-                <button
-                  v-if="editingCategoryId === category.id"
-                  @click="saveCategory(category)"
-                  class="absolute top-3 right-3 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg active:scale-95 flex items-center gap-2"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>Save</span>
-                </button>
-
-                <div class="flex items-center gap-3 pr-12">
-                  <!-- Category Number Badge -->
-                  <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0">
-                    {{ index + 1 }}
+                <!-- Normal View (Not Editing) -->
+                <div v-if="editingCategoryId !== category.id" class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <!-- Category Number Badge -->
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-lg flex items-center justify-center font-bold text-base flex-shrink-0 shadow-md">
+                      {{ index + 1 }}
+                    </div>
+                    
+                    <!-- Category Name Display -->
+                    <h3 class="text-xl font-bold text-gray-800">{{ category.name }}</h3>
                   </div>
-                  
-                  <!-- Category Input -->
-                  <input
-                    v-model="category.name"
-                    type="text"
-                    placeholder="Category name..."
-                    :disabled="editingCategoryId !== category.id"
-                    :class="[
-                      'flex-1 px-4 py-2.5 border-2 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm sm:text-base font-medium',
-                      editingCategoryId === category.id ? 'border-gray-300 bg-white' : 'border-gray-200 bg-gray-100 text-gray-700'
-                    ]"
-                    @keyup.enter="editingCategoryId === category.id ? saveCategory(category) : null"
-                  />
+
+                  <!-- 3-Dot Menu Button -->
+                  <button
+                    @click.stop="startEditing(category.id)"
+                    class="bg-white hover:bg-gray-100 text-gray-800 font-bold p-2 rounded-lg shadow-md transition-all duration-200 hover:scale-110"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zm0 6a.75.75 0 110-1.5.75.75 0 010 1.5zm0 6a.75.75 0 110-1.5.75.75 0 010 1.5z" />
+                    </svg>
+                  </button>
                 </div>
 
-                <!-- Delete Button (appears when editing) -->
-                <transition name="slide-down">
-                  <div v-if="editingCategoryId === category.id" class="mt-3 pt-3 border-t border-gray-200">
+                <!-- Edit View (Editing Mode) -->
+                <div v-else class="relative">
+                  <div class="flex items-center gap-3 mb-4">
+                    <!-- Category Number Badge -->
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-lg flex items-center justify-center font-bold text-base flex-shrink-0 shadow-md">
+                      {{ index + 1 }}
+                    </div>
+                    
+                    <!-- Category Input (Editable) -->
+                    <input
+                      v-model="category.name"
+                      type="text"
+                      placeholder="Category name..."
+                      class="flex-1 px-4 py-3 border-2 border-blue-400 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-200 transition-all text-lg font-semibold bg-blue-50"
+                      @keyup.enter="saveCategory(category)"
+                      @keyup.esc="editingCategoryId = null"
+                      ref="categoryInput"
+                      autofocus
+                    />
+                  </div>
+
+                  <!-- Action Buttons Below -->
+                  <div class="flex gap-2 justify-end">
                     <button
-                      @click="confirmDeleteCategory(category.id)"
-                      class="w-full px-4 py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg active:scale-95 flex items-center justify-center gap-2"
+                      @click.stop="editingCategoryId = null"
+                      class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-all duration-200 active:scale-95 flex items-center gap-2"
                     >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                       </svg>
-                      <span>Delete Category</span>
+                      <span>Cancel</span>
+                    </button>
+                    <button
+                      @click.stop="confirmDeleteCategory(category.id)"
+                      class="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 flex items-center gap-2"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                      </svg>
+                      <span>Delete</span>
+                    </button>
+                    <button
+                      @click.stop="saveCategory(category)"
+                      class="px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 flex items-center gap-2"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>Save</span>
                     </button>
                   </div>
-                </transition>
+                </div>
               </div>
             </div>
           </div>
@@ -823,5 +837,27 @@ export default {
 .slide-up-leave-from {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* Fade slide transition for options menu */
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.2s ease;
+}
+
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.fade-slide-enter-to,
+.fade-slide-leave-from {
+  opacity: 1;
+  transform: scale(1);
 }
 </style>

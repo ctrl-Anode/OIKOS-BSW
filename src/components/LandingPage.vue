@@ -185,7 +185,8 @@ const steps = ref([
   { icon: '🪄', text: 'Draw a CVC word' },
   { icon: '👉🏼', text: 'Tap letters for sounds' },
   { icon: '🔊', text: 'Play the whole word' },
-  { icon: '🪣', text: 'Save to your bucket' }
+  { icon: '🪣', text: 'Save to your bucket' },
+  { icon: '📱', text: 'Enjoy and Learn' }
 ])
 
 const benefits = ref([
